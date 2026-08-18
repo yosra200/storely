@@ -105,7 +105,7 @@ class AuthController extends Controller
             );
         }
 
-      
+
         $user->update([
             'password_reset_otp' => null,
             'password_reset_otp_expires_at' => null,
@@ -120,12 +120,12 @@ class AuthController extends Controller
 
 
 
-    public function resetPassword(resetPasswordRequest $request)
+    public function resetPassword(Request $request)
     {
 
 
         $status = Password::reset(
-            $request->only('email', 'password', 'password_confirmation', 'token'),
+            $request->only('password', 'password_confirmation'),
             function ($user, $password) {
                 $user->forceFill([
                     'password' => Hash::make($password)
