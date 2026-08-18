@@ -35,4 +35,23 @@ return [
         ],
     ],
 
+
+
+    'facebook' => [
+        'app_id' => env('FACEBOOK_APP_ID'),
+        'app_secret' => env('FACEBOOK_APP_SECRET'),
+
+        'graph_url' => env(
+            'FACEBOOK_GRAPH_URL',
+            'https://graph.facebook.com/v26.0'
+        ),
+    ],
+
+
+
+    'whatsapp' => [
+        'token' => env('WHATSAPP_TOKEN'),
+        'phone_number_id' => env('WHATSAPP_PHONE_NUMBER_ID'),
+    ],
+
 ];
