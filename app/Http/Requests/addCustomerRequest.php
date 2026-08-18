@@ -5,7 +5,7 @@ namespace App\Http\Requests;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 
-class OrderRequest extends FormRequest
+class addCustomerRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
@@ -23,11 +23,9 @@ class OrderRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'user_id' => 'required|exists:users,id',
-            'total_amount' => 'required',
-            'delivery_fee' => 'required',
-            'proudct_name' => 'required|string',
-            'quantity' => 'required'
+            'name' => 'required',
+            'email' => 'nullable',
+            'phone' => 'required'
         ];
     }
 }
