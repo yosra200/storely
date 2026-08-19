@@ -3,8 +3,10 @@
 namespace App\Http\Controllers;
 
 use App\Models\Order;
+use App\Services\Facebook\WhatsAppService;
+use App\Services\MyFatoorahService;
 use Illuminate\Http\Request;
-use Illuminate\Http\Response;
+use Throwable;
 
 class WhatsAppWebhookController extends Controller
 {
@@ -24,8 +26,11 @@ class WhatsAppWebhookController extends Controller
         return response('Forbidden', 403);
     }
 
-    public function handle(Request $request)
-    {
+    public function handle(
+        Request $request,
+        WhatsAppService $whatsappService,
+        MyFatoorahService $myFatoorahService
+    ) {
         $data = $request->all();
 
         $message = $data['entry'][0]['changes'][0]['value']['messages'][0] ?? null;
@@ -46,7 +51,25 @@ class WhatsAppWebhookController extends Controller
 
         /*
         |--------------------------------------------------------------------------
-        | العميل بعت Location
+        | Get Active Order
+        |--------------------------------------------------------------------------
+        */
+
+        $order = Order::whereHas('user', function ($query) use ($phone) {
+            $query->where('phone', $phone);
+        })
+            // ->whereIn('status', [
+            //     'pending',
+            //     'confirmed',
+            //     'processing',
+            //     'out_for_delivery',
+            // ])
+            ->latest()
+            ->first();
+
+        /*
+        |--------------------------------------------------------------------------
+        | Location
         |--------------------------------------------------------------------------
         */
 
@@ -61,24 +84,6 @@ class WhatsAppWebhookController extends Controller
                 ]);
             }
 
-            /*
-            |--------------------------------------------------------------------------
-            | هاتي الـ Order الخاص بالعميل
-            |--------------------------------------------------------------------------
-            */
-
-            $order = Order::whereHas('user', function ($query) use ($phone) {
-                $query->where('phone', $phone);
-            })
-                ->whereIn('status', [
-                    'pending',
-                    'confirmed',
-                    'processing',
-                    'out_for_delivery',
-                ])
-                ->latest()
-                ->first();
-
             if (!$order) {
                 return response()->json([
                     'success' => true,
@@ -86,16 +91,145 @@ class WhatsAppWebhookController extends Controller
                 ]);
             }
 
-            /*
-            |--------------------------------------------------------------------------
-            | Update Location
-            |--------------------------------------------------------------------------
-            */
-
             $order->update([
                 'latitude' => $latitude,
                 'longitude' => $longitude,
             ]);
+
+            /*
+            |--------------------------------------------------------------------------
+            | Send Payment Options
+            |--------------------------------------------------------------------------
+            */
+
+            $whatsappService->sendPaymentOptions($phone);
+
+            return response()->json([
+                'success' => true,
+            ]);
+        }
+
+        /*
+        |--------------------------------------------------------------------------
+        | Interactive Button
+        |--------------------------------------------------------------------------
+        */
+
+        if (($message['type'] ?? null) === 'interactive') {
+
+            $interactiveType = $message['interactive']['type'] ?? null;
+
+            /*
+            |--------------------------------------------------------------------------
+            | Reply Button
+            |--------------------------------------------------------------------------
+            */
+
+            if ($interactiveType === 'button_reply') {
+
+                $buttonId = $message['interactive']['button_reply']['id'] ?? null;
+
+                /*
+                |--------------------------------------------------------------------------
+                | Online Payment
+                |--------------------------------------------------------------------------
+                */
+
+                if ($buttonId === 'online') {
+
+                    if (!$order) {
+
+                        $whatsappService->sendMessage(
+                            $phone,
+                            'عذرًا، لم يتم العثور على طلب نشط.'
+                        );
+
+                        return response()->json([
+                            'success' => true,
+                        ]);
+                    }
+
+                    try {
+
+                        /*
+                        |--------------------------------------------------------------------------
+                        | Create MyFatoorah Payment
+                        |--------------------------------------------------------------------------
+                        */
+
+                        $payment = $myFatoorahService->createPayment(
+                            $order
+                        );
+
+                        /*
+                        |--------------------------------------------------------------------------
+                        | Send Payment URL
+                        |--------------------------------------------------------------------------
+                        */
+
+                        $whatsappService->sendMessage(
+                            $phone,
+                            "تم اختيار الدفع الإلكتروني ✅\n\n"
+                                . "رقم الطلب: #{$order->id}\n"
+                                . "إجمالي الطلب: {$order->total} جنيه\n\n"
+                                . "لإتمام الدفع اضغط على الرابط التالي:\n\n"
+                                . $payment['payment_url']
+                                . "\n\n"
+                                . "بعد إتمام الدفع سيتم تأكيد طلبك تلقائيًا."
+                        );
+                    } catch (Throwable $e) {
+
+                        report($e);
+
+                        $whatsappService->sendMessage(
+                            $phone,
+                            'حدث خطأ أثناء إنشاء رابط الدفع، من فضلك حاول مرة أخرى.'
+                        );
+                    }
+
+                    return response()->json([
+                        'success' => true,
+                    ]);
+                }
+
+                /*
+                |--------------------------------------------------------------------------
+                | Cash On Delivery
+                |--------------------------------------------------------------------------
+                */
+
+                if ($buttonId === 'cash') {
+
+                    if (!$order) {
+
+                        $whatsappService->sendMessage(
+                            $phone,
+                            'عذرًا، لم يتم العثور على طلب نشط.'
+                        );
+
+                        return response()->json([
+                            'success' => true,
+                        ]);
+                    }
+
+                    $order->update([
+                        'payment_method' => 'cash',
+                        'payment_status' => 'pending',
+                    ]);
+
+                    $whatsappService->sendMessage(
+                        $phone,
+                        "تم اختيار الدفع عند الاستلام ✅\n\n"
+                            . "رقم الطلب: #{$order->id}\n"
+                            . "إجمالي الطلب: {$order->total} جنيه\n\n"
+                            . "سيتم تجهيز طلبك للتوصيل."
+                    );
+
+                    return response()->json([
+                        'success' => true,
+                    ]);
+                }
+            }
         }
 
         return response()->json([
