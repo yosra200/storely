@@ -28,7 +28,7 @@ class OrderController extends Controller
             "أهلاً بك 👋\n\nتم إنشاء طلبك رقم #{$order->id}.\n\nمن فضلك أرسل موقعك الحالي 📍."
         );
 
-        $whatsapp->sendPaymentOptions($phone);
+        // $whatsapp->sendPaymentOptions($phone);
 
         return $this->successResponse($order, __('messages.update_success'));
     }
