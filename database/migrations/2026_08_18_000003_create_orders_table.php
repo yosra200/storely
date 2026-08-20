@@ -41,6 +41,7 @@ return new class extends Migration
             $table->timestamp('delivered_at')->nullable();
             $table->timestamp('cancelled_at')->nullable();
             $table->string('cancellation_reason')->nullable();
+            $table->timestamp('location_expires_at')->nullable();
             $table->timestamps();
             $table->softDeletes();
 
