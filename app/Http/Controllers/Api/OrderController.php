@@ -50,14 +50,15 @@ class OrderController extends Controller
     }
 
 
-    public function deliveryOrders(Request $request, $deliveryId)
+    public function deliveryOrders(Request $request)
     {
+        $user = auth()->user();
 
         $orders = Order::with([
             'customer',
             'items',
         ])
-            ->where('delivery_id', $deliveryId)
+            ->where('delivery_id', $user->id)
             ->when($request->filled('status'), function ($query) use ($request) {
                 $query->where('status', $request->status);
             })
