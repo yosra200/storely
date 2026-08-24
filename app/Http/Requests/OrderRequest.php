@@ -23,7 +23,9 @@ class OrderRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'user_id' => 'required|exists:users,id',
+            // 'user_id' => 'required|exists:users,id',
+            'name' => ['required', 'string', 'max:255'],
+            'phone' => ['required', 'string', 'max:20'],
             'total_amount' => 'required',
             'delivery_fee' => 'required',
             'proudct_name' => 'required|string',
