@@ -39,7 +39,6 @@ return new class extends Migration
             $table->softDeletes();
 
             $table->index(['delivery_id', 'status']);
-            $table->index(['status', 'delivered_at']);
         });
     }
 
