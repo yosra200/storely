@@ -30,7 +30,7 @@ class HomeController extends Controller
                 ->take(3)
                 ->get();
 
-            return $this->successMessage(
+            return $this->successResponse(
                 [
                     'delivery_count' => $deliveryCount,
                     'orders_count' => $ordersCount,
@@ -50,7 +50,7 @@ class HomeController extends Controller
                 ->where('status', 'delivered')
                 ->count();
 
-            return $this->successMessage(
+            return $this->successResponse(
                 [
                     'created_orders' => $createdOrders,
                     'delivered_orders' => $deliveredOrders,
