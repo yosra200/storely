@@ -19,14 +19,18 @@ class OrderController extends Controller
     {
         $data = $request->validated();
 
-        // بيانات العميل
-        $customer = User::create([
-            'name' => $data['name'],
-            'phone' => $data['phone'],
-            'role' => 'customer',
-        ]);
+        // Get existing customer or create a new one
+        $customer = User::firstOrCreate(
+            [
+                'phone' => $data['phone'],
+            ],
+            [
+                'name' => $data['name'],
+                'role' => 'customer',
+            ]
+        );
 
-        // بيانات الـ Order
+        // Order data
         $orderData = $data;
 
         unset(
@@ -39,7 +43,7 @@ class OrderController extends Controller
 
         $order = Order::create($orderData);
 
-        // إرسال WhatsApp
+        // Send WhatsApp
         $whatsapp->sendMessage(
             $customer->phone,
             "أهلاً بك 👋\n\nتم إنشاء طلبك رقم #{$order->order_number}.\n\nمن فضلك أرسل موقعك الحالي 📍."
