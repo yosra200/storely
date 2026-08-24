@@ -16,8 +16,11 @@ class OrderController extends Controller
 
     public function store(OrderRequest $request, WhatsAppService $whatsapp)
     {
-        $order = Order::create($request->validated());
+        $data = $request->validated();
 
+        $data['order_number'] = 'ORD-' . strtoupper(uniqid());
+
+        $order = Order::create($data);
 
         $customer = $order->customer;
 
@@ -25,11 +28,12 @@ class OrderController extends Controller
 
         $whatsapp->sendMessage(
             $phone,
-            "أهلاً بك 👋\n\nتم إنشاء طلبك رقم #{$order->id}.\n\nمن فضلك أرسل موقعك الحالي 📍."
+            "أهلاً بك 👋\n\nتم إنشاء طلبك رقم #{$order->order_number}.\n\nمن فضلك أرسل موقعك الحالي 📍."
         );
 
-        // $whatsapp->sendPaymentOptions($phone);
-
-        return $this->successResponse($order, __('messages.update_success'));
+        return $this->successResponse(
+            $order,
+            __('messages.created_success')
+        );
     }
 }
