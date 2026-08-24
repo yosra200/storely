@@ -48,7 +48,7 @@ class OrderController extends Controller
         // Save Order Items
         foreach ($data['products'] as $product) {
             $order->items()->create([
-                'item_name' => $product['product_name'],
+                'product_name' => $product['product_name'],
                 'quantity' => $product['quantity'],
                 'price' => $product['price'],
             ]);
