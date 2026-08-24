@@ -13,4 +13,9 @@ class Order extends Model
     {
         $this->belongsTo(User::class, 'customer_id');
     }
+
+    public function items()
+    {
+        return $this->hasMany(OrderItem::class);
+    }
 }

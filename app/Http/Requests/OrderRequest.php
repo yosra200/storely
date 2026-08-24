@@ -28,8 +28,25 @@ class OrderRequest extends FormRequest
             'phone' => ['required', 'string', 'max:20'],
             'total_amount' => 'required',
             'delivery_fee' => 'required',
-            'proudct_name' => 'required|string',
-            'quantity' => 'required'
+            'products' => ['required', 'array', 'min:1'],
+
+            'products.*.product_name' => [
+                'required',
+                'string',
+                'max:255',
+            ],
+
+            'products.*.quantity' => [
+                'required',
+                'integer',
+                'min:1',
+            ],
+
+            // 'products.*.price' => [
+            //     'required',
+            //     'numeric',
+            //     'min:0',
+            // ],
         ];
     }
 }

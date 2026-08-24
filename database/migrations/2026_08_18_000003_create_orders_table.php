@@ -34,12 +34,6 @@ return new class extends Migration
             $table->decimal('delivery_fee', 12, 2)->default(0);
             $table->decimal('total_amount', 12, 2)->default(0);
             $table->text('notes')->nullable();
-            $table->timestamp('customer_response_deadline')->nullable();
-            $table->timestamp('assigned_at')->nullable();
-            $table->timestamp('started_delivery_at')->nullable();
-            $table->timestamp('delivered_at')->nullable();
-            $table->timestamp('cancelled_at')->nullable();
-            $table->string('cancellation_reason')->nullable();
             $table->timestamp('location_expires_at')->nullable();
             $table->timestamps();
             $table->softDeletes();

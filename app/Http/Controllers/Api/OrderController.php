@@ -35,13 +35,24 @@ class OrderController extends Controller
 
         unset(
             $orderData['name'],
-            $orderData['phone']
+            $orderData['phone'],
+            $orderData['products']
         );
 
         $orderData['customer_id'] = $customer->id;
         $orderData['order_number'] = 'ORD-' . strtoupper(uniqid());
 
+        // Create Order
         $order = Order::create($orderData);
+
+        // Save Order Items
+        foreach ($data['products'] as $product) {
+            $order->items()->create([
+                'item_name' => $product['product_name'],
+                'quantity' => $product['quantity'],
+                'price' => $product['price'],
+            ]);
+        }
 
         // Send WhatsApp
         $whatsapp->sendMessage(
@@ -50,7 +61,7 @@ class OrderController extends Controller
         );
 
         return $this->successResponse(
-            $order,
+            $order->load('items'),
             __('messages.created_success')
         );
     }
