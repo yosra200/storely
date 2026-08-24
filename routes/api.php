@@ -45,8 +45,12 @@ Route::prefix('auth')->group(function () {
 
 
 Route::middleware('auth:sanctum')->group(function () {
+    //orders
     Route::post('/orders', [OrderController::class, 'store']);
-
+    Route::get('/orders/{order}', [OrderController::class, 'show']);
+    Route::get('/orders', [OrderController::class, 'index']);
+    Route::get('/deliveries/{deliveryId}/orders', [OrderController::class, 'deliveryOrders']);
+    //customers
     Route::post('/customers', [CustomerController::class, 'store']);
 
     // Start Facebook Live

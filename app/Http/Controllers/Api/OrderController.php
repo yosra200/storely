@@ -9,12 +9,66 @@ use App\Traits\ApiResponse;
 use App\Models\Order;
 use App\Services\Facebook\WhatsAppService;
 use App\Models\User;
+use App\Http\Resources\OrderResource;
 
 class OrderController extends Controller
 {
     use ApiResponse;
 
 
+    public function show(Order $order)
+    {
+        $order->load([
+            'customer',
+            'items',
+        ]);
+
+        return $this->successResponse(
+            new OrderResource($order),
+            __('messages.success')
+        );
+    }
+
+
+
+    public function index(Request $request)
+    {
+        $orders = Order::with([
+            'customer',
+            'items',
+        ])
+            ->when($request->filled('status'), function ($query) use ($request) {
+                $query->where('status', $request->status);
+            })
+            ->latest()
+            ->paginate($request->get('per_page', 10));
+
+        return $this->successResponse(
+            OrderResource::collection($orders),
+            __('messages.success')
+        );
+    }
+
+
+    public function deliveryOrders(Request $request, $deliveryId)
+    {
+
+        $orders = Order::with([
+            'customer',
+            'items',
+        ])
+            ->where('delivery_id', $deliveryId)
+            ->when($request->filled('status'), function ($query) use ($request) {
+                $query->where('status', $request->status);
+            })
+            ->latest()
+            ->paginate($request->get('per_page', 10));
+
+        return $this->successResponse(
+            OrderResource::collection($orders),
+            __('messages.success')
+        );
+    }
     public function store(OrderRequest $request, WhatsAppService $whatsapp)
     {
         $data = $request->validated();
