@@ -42,11 +42,11 @@ class OrderRequest extends FormRequest
                 'min:1',
             ],
 
-            // 'products.*.price' => [
-            //     'required',
-            //     'numeric',
-            //     'min:0',
-            // ],
+            'products.*.price' => [
+                'required',
+                'numeric',
+                'min:0',
+            ],
         ];
     }
 }
