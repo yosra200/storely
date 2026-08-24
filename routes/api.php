@@ -2,8 +2,11 @@
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\WhatsAppWebhookController;
+use App\Http\Controllers\Api\WhatsAppWebhookController;
 use App\Http\Controllers\Api\AuthController;
+use App\Http\Controllers\Api\OrderController;
+use App\Http\Controllers\Api\CustomerController;
+use App\Http\Controllers\Api\LiveController;
 
 Route::get('/user', function (Request $request) {
     return $request->user();
@@ -37,4 +40,21 @@ Route::prefix('auth')->group(function () {
     // Logout
     Route::post('/logout', [AuthController::class, 'logout'])
         ->middleware('auth:sanctum');
+});
+
+
+
+Route::middleware('auth:sanctum')->group(function () {
+    Route::post('/orders', [OrderController::class, 'store']);
+
+    Route::post('/customers', [CustomerController::class, 'store']);
+
+    // Start Facebook Live
+    Route::post('/lives/start', [LiveController::class, 'start']);
+
+    // End Facebook Live
+    Route::post('/lives/{live}/end', [LiveController::class, 'end']);
+
+    // Get Live details
+    Route::get('/lives/{live}', [LiveController::class, 'show']);
 });
