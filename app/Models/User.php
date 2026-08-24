@@ -29,6 +29,7 @@ class User extends Authenticatable
         'longitude',
         'is_active',
         'last_seen_at',
+        'image'
     ];
 
 

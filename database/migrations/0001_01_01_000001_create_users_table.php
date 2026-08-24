@@ -17,6 +17,7 @@ return new class extends Migration
             $table->enum('role', ['admin', 'delivery', 'customer'])->default('delivery')->index();
             $table->string('profile_photo_path')->nullable();
             $table->text('address')->nullable();
+            $table->string('image')->nullable();
             $table->decimal('latitude', 10, 7)->nullable();
             $table->decimal('longitude', 10, 7)->nullable();
             $table->boolean('is_active')->default(true)->index();
