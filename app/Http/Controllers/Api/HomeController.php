@@ -33,7 +33,7 @@ class HomeController extends Controller
             return $this->successResponse(
                 [
                     'delivery_count' => $deliveryCount,
-                    'orders_count' => $ordersCount,
+                    'orders_count' => $ordersCount, 
                     'latest_orders' => OrderResource::collection($latestOrders),
                 ],
                 __('messages.success')
