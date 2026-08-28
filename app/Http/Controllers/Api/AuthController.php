@@ -31,24 +31,21 @@ public function register(RegisterRequest $request)
 
     return $this->successMessage(__('auth.register_success'));
 }
-    public function login(LoginRequest $request)
-    {
-        $user = User::where(function ($query) use ($request) {
-            $query->where('email', $request->email)
-                ->orWhere('phone', $request->phone);
-        })->first();
+   public function login(LoginRequest $request)
+{
+    $user = User::where('phone', $request->phone)->first();
 
-        if (!$user || !Hash::check($request->password, $user->password)) {
-            return $this->errorResponse(__('auth.invalid_credentials'), 401);
-        }
-
-        $token = $user->createToken('auth_token')->plainTextToken;
-
-        return $this->successResponse([
-            'user' => new UserResource($user),
-            'access_token' => $token,
-        ], __('auth.login_success'));
+    if (!$user || !Hash::check($request->password, $user->password)) {
+        return $this->errorResponse(__('auth.invalid_credentials'), 401);
     }
+
+    $token = $user->createToken('auth_token')->plainTextToken;
+
+    return $this->successResponse([
+        'user' => new UserResource($user),
+        'access_token' => $token,
+    ], __('auth.login_success'));
+}
 
 
     public function forgotPassword(forgotPasswordRequest $request)
@@ -156,5 +153,42 @@ public function register(RegisterRequest $request)
         $request->user()->currentAccessToken()->delete();
 
         return $this->successMessage(__('auth.logout_success'));
+    }
+
+
+        public function changePassword(Request $request)
+    {
+        $user = auth()->user();
+
+        if (!$user) {
+            return $this->errorResponse(__('messages.unauthorized'), 401);
+        }
+
+        $validated = $request->validate([
+            'current_password' => ['required', 'string'],
+            'new_password' => [
+                'required',
+                'string',
+                'min:8',
+                'confirmed',
+                'different:current_password',
+            ],
+        ]);
+
+        if (!Hash::check($validated['current_password'], $user->password)) {
+            return $this->errorResponse(
+                __('messages.current_password_incorrect'),
+                422
+            );
+        }
+
+        $user->update([
+            'password' => Hash::make($validated['new_password']),
+        ]);
+
+        return $this->successResponse(
+            null,
+            __('messages.password_changed_successfully')
+        );
     }
 }
