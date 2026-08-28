@@ -20,13 +20,17 @@ use App\Http\Requests\verifyOtpRequest;
 class AuthController extends Controller
 {
     use ApiResponse;
-    public function register(RegisterRequest $request)
-    {
-        User::create($request->validated());
+public function register(RegisterRequest $request)
+{
+    $data = array_merge(
+        $request->validated(),
+        ['role' => 'delivery']
+    );
 
-        return $this->successMessage(__('auth.register_success'));
-    }
+    User::create($data);
 
+    return $this->successMessage(__('auth.register_success'));
+}
     public function login(LoginRequest $request)
     {
         $user = User::where(function ($query) use ($request) {
