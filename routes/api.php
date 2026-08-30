@@ -53,6 +53,8 @@ Route::middleware('auth:sanctum')->group(function () {
     ]);
     //Admin orders
     Route::post('/orders', [OrderController::class, 'store']);
+    Route::post('/orders/addordersupervisor', [OrderController::class, 'addOrderSupervisor']);
+    Route::post('/orders/addordersales', [OrderController::class, 'addOrderSales']);
     Route::get('/orders/{order}', [OrderController::class, 'show']);
     Route::get('/orders', [OrderController::class, 'index']);
         Route::get('/sales', [OrderController::class, 'sales']);

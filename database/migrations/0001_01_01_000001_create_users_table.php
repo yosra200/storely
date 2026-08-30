@@ -14,7 +14,14 @@ return new class extends Migration
             $table->string('email')->nullable()->unique();
             $table->string('phone')->nullable()->unique();
             $table->string('password')->nullable();
-            $table->enum('role', ['admin', 'delivery', 'customer'])->default('delivery')->index();
+            $table->enum('role', [
+                'admin',
+                'supervisor',
+                'sales',
+                'delivery',
+                'packing',
+                'customer',
+            ])->default('delivery')->index();
             $table->string('profile_photo_path')->nullable();
             $table->text('address')->nullable();
             $table->string('image')->nullable();
