@@ -3,8 +3,8 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
-
 use App\Models\Order;
+use App\Models\User;
 use App\Services\Facebook\WhatsAppService;
 use App\Services\MyFatoorahService;
 use Illuminate\Http\Request;
@@ -18,10 +18,7 @@ class WhatsAppWebhookController extends Controller
         $token = $request->query('hub_verify_token');
         $challenge = $request->query('hub_challenge');
 
-        if (
-            $mode === 'subscribe' &&
-            $token === config('services.whatsapp.webhook_verify_token')
-        ) {
+        if ($mode === 'subscribe' && $token === config('services.whatsapp.webhook_verify_token')) {
             return response($challenge, 200);
         }
 
@@ -37,7 +34,7 @@ class WhatsAppWebhookController extends Controller
 
         $message = $data['entry'][0]['changes'][0]['value']['messages'][0] ?? null;
 
-        if (!$message) {
+        if (! $message) {
             return response()->json([
                 'success' => true,
             ]);
@@ -45,29 +42,11 @@ class WhatsAppWebhookController extends Controller
 
         $phone = $message['from'] ?? null;
 
-        if (!$phone) {
+        if (! $phone) {
             return response()->json([
                 'success' => true,
             ]);
         }
-
-        /*
-        |--------------------------------------------------------------------------
-        | Get Active Order
-        |--------------------------------------------------------------------------
-        */
-
-        $order = Order::whereHas('user', function ($query) use ($phone) {
-            $query->where('phone', $phone);
-        })
-            // ->whereIn('status', [
-            //     'pending',
-            //     'confirmed',
-            //     'processing',
-            //     'out_for_delivery',
-            // ])
-            ->latest()
-            ->first();
 
         /*
         |--------------------------------------------------------------------------
@@ -80,23 +59,47 @@ class WhatsAppWebhookController extends Controller
             $latitude = $message['location']['latitude'] ?? null;
             $longitude = $message['location']['longitude'] ?? null;
 
-            if (!$latitude || !$longitude) {
+            if ($latitude === null || $longitude === null) {
                 return response()->json([
                     'success' => true,
                 ]);
             }
 
-            if (!$order) {
+            $locationRequestId = $message['context']['id'] ?? null;
+            $orderNumber = $whatsappService->getLocationRequestOrderNumber($locationRequestId);
+
+            $order = $orderNumber
+                ? $this->findCustomerOrder($orderNumber, $phone)
+                : null;
+
+            if (! $order) {
+                $whatsappService->sendMessage(
+                    $phone,
+                    'عذرًا، تعذر تحديد رقم الطلب. استخدم زر إرسال الموقع الموجود في رسالة الطلب.'
+                );
+
                 return response()->json([
                     'success' => true,
-                    'message' => 'No active order found',
+                    'message' => 'Order reference is missing or invalid',
                 ]);
             }
 
-            $order->update([
-                'latitude' => $latitude,
-                'longitude' => $longitude,
-            ]);
+            $nearestDelivery = $this->findNearestDelivery(
+                (float) $latitude,
+                (float) $longitude
+            );
+
+            $orderData = [
+                'delivery_latitude' => $latitude,
+                'delivery_longitude' => $longitude,
+            ];
+
+            if ($nearestDelivery) {
+                $orderData['delivery_id'] = $nearestDelivery->id;
+                $orderData['status'] = 'created';
+            }
+
+            $order->update($orderData);
 
             /*
             |--------------------------------------------------------------------------
@@ -104,7 +107,7 @@ class WhatsAppWebhookController extends Controller
             |--------------------------------------------------------------------------
             */
 
-            $whatsappService->sendPaymentOptions($phone);
+            $whatsappService->sendPaymentOptions($phone, $order->order_number);
 
             return response()->json([
                 'success' => true,
@@ -129,7 +132,17 @@ class WhatsAppWebhookController extends Controller
 
             if ($interactiveType === 'button_reply') {
 
-                $buttonId = $message['interactive']['button_reply']['id'] ?? null;
+                $buttonId = $message['interactive']['button_reply']['id'] ?? '';
+
+                if (! preg_match('/^(cash|online):([A-Za-z0-9-]+)$/', $buttonId, $matches)) {
+                    return response()->json([
+                        'success' => true,
+                        'message' => 'Invalid payment button payload',
+                    ]);
+                }
+
+                $buttonAction = $matches[1];
+                $order = $this->findCustomerOrder($matches[2], $phone);
 
                 /*
                 |--------------------------------------------------------------------------
@@ -137,9 +150,9 @@ class WhatsAppWebhookController extends Controller
                 |--------------------------------------------------------------------------
                 */
 
-                if ($buttonId === 'online') {
+                if ($buttonAction === 'online') {
 
-                    if (!$order) {
+                    if (! $order) {
 
                         $whatsappService->sendMessage(
                             $phone,
@@ -172,12 +185,12 @@ class WhatsAppWebhookController extends Controller
                         $whatsappService->sendMessage(
                             $phone,
                             "تم اختيار الدفع الإلكتروني ✅\n\n"
-                                . "رقم الطلب: #{$order->id}\n"
-                                . "إجمالي الطلب: {$order->total} جنيه\n\n"
-                                . "لإتمام الدفع اضغط على الرابط التالي:\n\n"
-                                . $payment['payment_url']
-                                . "\n\n"
-                                . "بعد إتمام الدفع سيتم تأكيد طلبك تلقائيًا."
+                                ."رقم الطلب: #{$order->order_number}\n"
+                                ."إجمالي الطلب: {$order->total_amount} جنيه\n\n"
+                                ."لإتمام الدفع اضغط على الرابط التالي:\n\n"
+                                .$payment['payment_url']
+                                ."\n\n"
+                                .'بعد إتمام الدفع سيتم تأكيد طلبك تلقائيًا.'
                         );
                     } catch (Throwable $e) {
 
@@ -200,9 +213,9 @@ class WhatsAppWebhookController extends Controller
                 |--------------------------------------------------------------------------
                 */
 
-                if ($buttonId === 'cash') {
+                if ($buttonAction === 'cash') {
 
-                    if (!$order) {
+                    if (! $order) {
 
                         $whatsappService->sendMessage(
                             $phone,
@@ -215,16 +228,16 @@ class WhatsAppWebhookController extends Controller
                     }
 
                     $order->update([
-                        'payment_method' => 'cash',
+                        'payment_method' => 'cash_on_delivery',
                         'payment_status' => 'pending',
                     ]);
 
                     $whatsappService->sendMessage(
                         $phone,
                         "تم اختيار الدفع عند الاستلام ✅\n\n"
-                            . "رقم الطلب: #{$order->id}\n"
-                            . "إجمالي الطلب: {$order->total} جنيه\n\n"
-                            . "سيتم تجهيز طلبك للتوصيل."
+                            ."رقم الطلب: #{$order->order_number}\n"
+                            ."إجمالي الطلب: {$order->total_amount} جنيه\n\n"
+                            .'سيتم تجهيز طلبك للتوصيل.'
                     );
 
                     return response()->json([
@@ -237,5 +250,52 @@ class WhatsAppWebhookController extends Controller
         return response()->json([
             'success' => true,
         ]);
+    }
+
+    private function findCustomerOrder(string $orderNumber, string $phone): ?Order
+    {
+        return Order::where('order_number', $orderNumber)
+            ->whereHas('customer', function ($query) use ($phone) {
+                $query->where('phone', $phone);
+            })
+            ->first();
+    }
+
+    private function findNearestDelivery(float $latitude, float $longitude): ?User
+    {
+        return User::query()
+            ->where('role', 'delivery')
+            ->where('is_active', true)
+            ->whereNotNull('latitude')
+            ->whereNotNull('longitude')
+            ->get(['id', 'latitude', 'longitude'])
+            ->minBy(function (User $delivery) use ($latitude, $longitude) {
+                return $this->distanceInKilometers(
+                    $latitude,
+                    $longitude,
+                    (float) $delivery->latitude,
+                    (float) $delivery->longitude
+                );
+            });
+    }
+
+    private function distanceInKilometers(
+        float $fromLatitude,
+        float $fromLongitude,
+        float $toLatitude,
+        float $toLongitude
+    ): float {
+        $earthRadius = 6371;
+        $latitudeDelta = deg2rad($toLatitude - $fromLatitude);
+        $longitudeDelta = deg2rad($toLongitude - $fromLongitude);
+
+        $haversine = sin($latitudeDelta / 2) ** 2
+            + cos(deg2rad($fromLatitude))
+            * cos(deg2rad($toLatitude))
+            * sin($longitudeDelta / 2) ** 2;
+
+        $haversine = min(1, max(0, $haversine));
+
+        return 2 * $earthRadius * asin(sqrt($haversine));
     }
 }

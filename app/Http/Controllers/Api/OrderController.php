@@ -3,21 +3,19 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
-use App\Http\Requests\OrderRequest;
-use App\Http\Requests\AddOrderSupervisorRequest;
 use App\Http\Requests\AddOrderSalesRequest;
-use App\Traits\ApiResponse;
-use App\Models\Order;
-use App\Services\Facebook\WhatsAppService;
-use App\Models\User;
-use Illuminate\Validation\Rule;
+use App\Http\Requests\AddOrderSupervisorRequest;
+use App\Http\Requests\OrderRequest;
 use App\Http\Resources\OrderResource;
+use App\Models\Order;
+use App\Models\User;
+use App\Services\Facebook\WhatsAppService;
+use App\Traits\ApiResponse;
+use Illuminate\Http\Request;
 
 class OrderController extends Controller
 {
     use ApiResponse;
-
 
     public function show(Order $order)
     {
@@ -31,8 +29,6 @@ class OrderController extends Controller
             __('messages.success')
         );
     }
-
-
 
     public function index(Request $request)
     {
@@ -51,7 +47,6 @@ class OrderController extends Controller
             __('messages.success')
         );
     }
-
 
     public function deliveryOrders(Request $request)
     {
@@ -95,11 +90,11 @@ class OrderController extends Controller
         unset(
             $orderData['name'],
             $orderData['phone'],
-            $orderData['products'] 
+            $orderData['products']
         );
 
         $orderData['customer_id'] = $customer->id;
-        $orderData['order_number'] = 'ORD-' . strtoupper(uniqid());
+        $orderData['order_number'] = 'ORD-'.strtoupper(uniqid());
 
         // Create Order
         $order = Order::create($orderData);
@@ -116,8 +111,9 @@ class OrderController extends Controller
         // Send WhatsApp
         $whatsapp->sendMessage(
             $customer->phone,
-            "أهلاً بك 👋\n\nتم إنشاء طلبك رقم #{$order->order_number}.\n\nمن فضلك أرسل موقعك الحالي 📍."
+            "أهلاً بك 👋\n\nتم إنشاء طلبك رقم #{$order->order_number}."
         );
+        $whatsapp->sendLocationRequest($customer->phone, $order->order_number);
 
         return $this->successResponse(
             $order->load('items'),
@@ -135,7 +131,7 @@ class OrderController extends Controller
             $orderData['products']
         );
 
-        $orderData['order_number'] = 'ORD-' . strtoupper(uniqid());
+        $orderData['order_number'] = 'ORD-'.strtoupper(uniqid());
         $orderData['customer_id'] = null;
         $orderData['subtotal'] = $data['subtotal'] ?? ($data['total_amount'] - ($data['delivery_fee'] ?? 0));
         $orderData['delivery_fee'] = $data['delivery_fee'] ?? 0;
@@ -177,7 +173,7 @@ class OrderController extends Controller
         );
 
         $order = Order::create([
-            'order_number' => 'ORD-' . strtoupper(uniqid()),
+            'order_number' => 'ORD-'.strtoupper(uniqid()),
             'customer_id' => $customer->id,
             'status' => 'pending',
             'payment_status' => 'pending',
@@ -188,8 +184,9 @@ class OrderController extends Controller
 
         $whatsapp->sendMessage(
             $customer->phone,
-            "أهلاً بك 👋\n\nتم إنشاء طلبك رقم #{$order->order_number}.\n\nمن فضلك أرسل موقعك الحالي 📍."
+            "أهلاً بك 👋\n\nتم إنشاء طلبك رقم #{$order->order_number}."
         );
+        $whatsapp->sendLocationRequest($customer->phone, $order->order_number);
 
         return $this->successResponse(
             $order->load('items'),
@@ -197,31 +194,30 @@ class OrderController extends Controller
         );
     }
 
-
     public function sales(Request $request)
     {
         $auth = auth()->user();
 
-        if (!$auth || $auth->role !== 'manager') {
+        if (! $auth || $auth->role !== 'manager') {
             return $this->errorResponse(__('messages.unauthorized'), 403);
         }
 
         $validated = $request->validate([
             'customer_name' => ['nullable', 'string', 'max:255'],
-            'from_date'     => ['nullable', 'date_format:Y-m-d'],
-            'to_date'       => [
+            'from_date' => ['nullable', 'date_format:Y-m-d'],
+            'to_date' => [
                 'nullable',
                 'date_format:Y-m-d',
                 'after_or_equal:from_date',
             ],
-            'per_page'      => ['nullable', 'integer', 'min:1', 'max:100'],
+            'per_page' => ['nullable', 'integer', 'min:1', 'max:100'],
         ]);
 
         $query = Order::query()
             ->where('status', 'delivered')
             ->with('customer')
             ->when(
-                !empty($validated['customer_name']),
+                ! empty($validated['customer_name']),
                 function ($query) use ($validated) {
                     $customerName = $validated['customer_name'];
 
@@ -231,13 +227,13 @@ class OrderController extends Controller
                 }
             )
             ->when(
-                !empty($validated['from_date']),
+                ! empty($validated['from_date']),
                 function ($query) use ($validated) {
                     $query->whereDate('created_at', '>=', $validated['from_date']);
                 }
             )
             ->when(
-                !empty($validated['to_date']),
+                ! empty($validated['to_date']),
                 function ($query) use ($validated) {
                     $query->whereDate('created_at', '<=', $validated['to_date']);
                 }
@@ -259,10 +255,10 @@ class OrderController extends Controller
             ->withQueryString();
 
         return $this->successResponse([
-            'total_sales'         => $totalSales,
-            'total_orders'        => $totalOrders,
+            'total_sales' => $totalSales,
+            'total_orders' => $totalOrders,
             'total_delivery_fees' => $totalDeliveryFees,
-            'orders'              => OrderResource::collection($orders),
+            'orders' => OrderResource::collection($orders),
         ], __('messages.success'));
     }
 }

@@ -2,6 +2,7 @@
 
 namespace App\Services\Facebook;
 
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
 
 class WhatsAppService
@@ -12,7 +13,7 @@ class WhatsAppService
     {
         return Http::withToken(config('services.whatsapp.token'))
             ->post(
-                $this->graphUrl . '/' . config('services.whatsapp.phone_number_id') . '/messages',
+                $this->graphUrl.'/'.config('services.whatsapp.phone_number_id').'/messages',
                 [
                     'messaging_product' => 'whatsapp',
                     'to' => $phone,
@@ -24,11 +25,52 @@ class WhatsAppService
             );
     }
 
-    public function sendPaymentOptions(string $phone)
+    public function sendLocationRequest(string $phone, string $orderNumber)
+    {
+        $response = Http::withToken(config('services.whatsapp.token'))
+            ->post(
+                $this->graphUrl.'/'.config('services.whatsapp.phone_number_id').'/messages',
+                [
+                    'messaging_product' => 'whatsapp',
+                    'to' => $phone,
+                    'type' => 'interactive',
+                    'interactive' => [
+                        'type' => 'location_request_message',
+                        'body' => [
+                            'text' => 'من فضلك أرسل موقعك الحالي للطلب.',
+                        ],
+                        'action' => [
+                            'name' => 'send_location',
+                        ],
+                    ],
+                ]
+            );
+
+        $messageId = data_get($response->json(), 'messages.0.id');
+
+        if ($response->successful() && $messageId) {
+            Cache::put($this->locationRequestCacheKey($messageId), $orderNumber, now()->addDay());
+        }
+
+        return $response;
+    }
+
+    public function getLocationRequestOrderNumber(?string $messageId): ?string
+    {
+        if (! $messageId) {
+            return null;
+        }
+
+        $orderNumber = Cache::get($this->locationRequestCacheKey($messageId));
+
+        return is_string($orderNumber) ? $orderNumber : null;
+    }
+
+    public function sendPaymentOptions(string $phone, string $orderNumber)
     {
         return Http::withToken(config('services.whatsapp.token'))
             ->post(
-                $this->graphUrl . '/' . config('services.whatsapp.phone_number_id') . '/messages',
+                $this->graphUrl.'/'.config('services.whatsapp.phone_number_id').'/messages',
                 [
                     'messaging_product' => 'whatsapp',
                     'to' => $phone,
@@ -43,14 +85,14 @@ class WhatsAppService
                                 [
                                     'type' => 'reply',
                                     'reply' => [
-                                        'id' => 'cash',
+                                        'id' => 'cash:'.$orderNumber,
                                         'title' => 'الدفع عند الاستلام',
                                     ],
                                 ],
                                 [
                                     'type' => 'reply',
                                     'reply' => [
-                                        'id' => 'online',
+                                        'id' => 'online:'.$orderNumber,
                                         'title' => 'الدفع الإلكتروني',
                                     ],
                                 ],
@@ -59,5 +101,10 @@ class WhatsAppService
                     ],
                 ]
             );
+    }
+
+    private function locationRequestCacheKey(string $messageId): string
+    {
+        return 'whatsapp:location-request:'.$messageId;
     }
 }

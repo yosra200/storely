@@ -8,6 +8,7 @@ use App\Http\Controllers\Api\OrderController;
 use App\Http\Controllers\Api\CustomerController;
 use App\Http\Controllers\Api\LiveController;
 use App\Http\Controllers\Api\HomeController;
+use App\Http\Controllers\Api\DeliveryController;
 
 Route::get('/user', function (Request $request) {
     return $request->user();
@@ -46,28 +47,25 @@ Route::prefix('auth')->group(function () {
 
 
 Route::middleware('auth:sanctum')->group(function () {
-//change-password
-    Route::post('/change-password', [
-        AuthController::class,
-        'changePassword',
-    ]);
+    //change-password
+    Route::post('/change-password', [AuthController::class, 'changePassword']);
     //Admin orders
     Route::post('/orders', [OrderController::class, 'store']);
     Route::post('/orders/addordersupervisor', [OrderController::class, 'addOrderSupervisor']);
     Route::post('/orders/addordersales', [OrderController::class, 'addOrderSales']);
     Route::get('/orders/{order}', [OrderController::class, 'show']);
     Route::get('/orders', [OrderController::class, 'index']);
-        Route::get('/sales', [OrderController::class, 'sales']);
+    Route::get('/sales', [OrderController::class, 'sales']);
 
     Route::get('/deliveries/orders', [OrderController::class, 'deliveryOrders']);
 
 
     //customers
     Route::post('/customers', [CustomerController::class, 'store']);
-Route::get('/customers', [CustomerController::class, 'customer']);
+    Route::get('/customers', [CustomerController::class, 'customer']);
 
-//deliveries
-Route::get('/deliveries', [DeliveryController::class, 'deliveries']);
+    //deliveries
+    Route::get('/deliveries', [DeliveryController::class, 'deliveries']);
 
     // Start Facebook Live
     Route::post('/lives/start', [LiveController::class, 'start']);
