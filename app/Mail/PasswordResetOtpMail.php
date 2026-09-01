@@ -4,10 +4,9 @@ namespace App\Mail;
 
 use Illuminate\Bus\Queueable;
 use Illuminate\Mail\Mailable;
+use Illuminate\Mail\Mailables\Content;
 use Illuminate\Mail\Mailables\Envelope;
 use Illuminate\Queue\SerializesModels;
-use Illuminate\Mail\Mailables\Headers;
-use Symfony\Component\Mime\Email;
 
 class PasswordResetOtpMail extends Mailable
 {
@@ -21,14 +20,13 @@ class PasswordResetOtpMail extends Mailable
     {
         return new Envelope(
             subject: 'Password Reset OTP',
-            using: [
-                function (Email $message) {
-                    $message->text(
-                        "Your password reset OTP is: {$this->otp}\n\n"
-                            . "This code will expire in 5 minutes."
-                    );
-                },
-            ],
+        );
+    }
+
+    public function content(): Content
+    {
+        return new Content(
+            view: 'emails.password-reset-otp',
         );
     }
 }
