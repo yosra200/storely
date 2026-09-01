@@ -7,16 +7,13 @@ use Illuminate\Http\Request;
 use App\Http\Resources\UserResource;
 use App\Models\User;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\Password;
 use App\Traits\ApiResponse;
 use App\Http\Requests\RegisterRequest;
 use App\Http\Requests\LoginRequest;
 use App\Http\Requests\forgotPasswordRequest;
 use Illuminate\Support\Facades\Mail;
 use App\Mail\PasswordResetOtpMail;
-use App\Http\Requests\resetPasswordRequest;
 use App\Http\Requests\verifyOtpRequest;
-use Illuminate\Support\Facades\Cache;
 
 class AuthController extends Controller
 {
@@ -64,7 +61,7 @@ class AuthController extends Controller
 
         // Save OTP
         $user->update([
-            'password_reset_otp' => $otp,
+            'password_reset_otp' => Hash::make((string) $otp),
             'password_reset_otp_expires_at' => now()->addMinutes(5),
         ]);
 
@@ -93,25 +90,25 @@ class AuthController extends Controller
             );
         }
 
-        if ($user->password_reset_otp !== $request->otp) {
+        if (
+            !$user->password_reset_otp ||
+            !Hash::check((string) $request->otp, $user->password_reset_otp)
+        ) {
             return $this->errorResponse(
                 __('messages.invalid_otp'),
                 422
             );
         }
 
-        if (now()->greaterThan($user->password_reset_otp_expires_at)) {
+        if (
+            !$user->password_reset_otp_expires_at ||
+            now()->greaterThanOrEqualTo($user->password_reset_otp_expires_at)
+        ) {
             return $this->errorResponse(
                 __('messages.otp_expired'),
                 422
             );
         }
-
-
-        $user->update([
-            'password_reset_otp' => null,
-            'password_reset_otp_expires_at' => null,
-        ]);
 
         return $this->successResponse(
             [],
@@ -126,38 +123,35 @@ class AuthController extends Controller
     {
         $request->validate([
             'email' => 'required|email|exists:users,email',
-            'code' => 'required|digits:6',
+            'otp' => 'required|digits:6',
             'password' => 'required|string|min:8|confirmed',
         ]);
 
-        $cacheKey = 'password_reset_otp_' . $request->email;
+        $user = User::where('email', $request->email)->firstOrFail();
 
-        $hashedOtp = Cache::get($cacheKey);
-
-        // OTP غير موجود أو انتهت صلاحيته
-        if (!$hashedOtp) {
+        if (
+            !$user->password_reset_otp ||
+            !$user->password_reset_otp_expires_at ||
+            now()->greaterThanOrEqualTo($user->password_reset_otp_expires_at)
+        ) {
             return $this->errorResponse(
-                'OTP is invalid or expired.',
+                __('messages.otp_expired'),
                 422
             );
         }
 
-        // التحقق من OTP
-        if (!Hash::check($request->code, $hashedOtp)) {
+        if (!Hash::check((string) $request->otp, $user->password_reset_otp)) {
             return $this->errorResponse(
-                'Invalid OTP.',
+                __('messages.invalid_otp'),
                 422
             );
         }
-
-        $user = User::where('email', $request->email)->first();
 
         $user->update([
             'password' => Hash::make($request->password),
+            'password_reset_otp' => null,
+            'password_reset_otp_expires_at' => null,
         ]);
-
-        // حذف OTP بعد استخدامه
-        Cache::forget($cacheKey);
 
         return $this->successResponse(
             [],

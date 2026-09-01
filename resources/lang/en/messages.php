@@ -16,4 +16,10 @@ return [
     'cart_is_empty' => 'Cannot create an order from an empty cart',
     'settings_retrieved_successfully' => 'Settings retrieved successfully',
     'faqs_retrieved_successfully' => 'FAQs retrieved successfully',
+    'password_reset_user_not_found' => 'No user was found with this email address.',
+    'otp_sent_successfully' => 'OTP sent successfully.',
+    'invalid_otp' => 'Invalid OTP.',
+    'otp_expired' => 'OTP is invalid or expired.',
+    'otp_verified_successfully' => 'OTP verified successfully.',
+    'password_reset_success' => 'Password reset successfully.',
 ];
