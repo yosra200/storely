@@ -30,7 +30,9 @@ class User extends Authenticatable
         'longitude',
         'is_active',
         'last_seen_at',
-        'image'
+        'image',
+        'password_reset_otp',
+        'password_reset_otp_expires_at'
     ];
 
 
