@@ -16,6 +16,7 @@ use Illuminate\Support\Facades\Mail;
 use App\Mail\PasswordResetOtpMail;
 use App\Http\Requests\resetPasswordRequest;
 use App\Http\Requests\verifyOtpRequest;
+use Illuminate\Support\Facades\Cache;
 
 class AuthController extends Controller
 {
@@ -123,28 +124,45 @@ class AuthController extends Controller
 
     public function resetPassword(Request $request)
     {
+        $request->validate([
+            'email' => 'required|email|exists:users,email',
+            'code' => 'required|digits:6',
+            'password' => 'required|string|min:8|confirmed',
+        ]);
 
+        $cacheKey = 'password_reset_otp_' . $request->email;
 
-        $status = Password::reset(
-            $request->only('password', 'password_confirmation'),
-            function ($user, $password) {
-                $user->forceFill([
-                    'password' => Hash::make($password)
-                ])->save();
-            }
-        );
+        $hashedOtp = Cache::get($cacheKey);
 
-        if ($status === Password::PASSWORD_RESET) {
-            return $this->successResponse(
-                [],
-                __('messages.password_reset_success'),
-                200
+        // OTP غير موجود أو انتهت صلاحيته
+        if (!$hashedOtp) {
+            return $this->errorResponse(
+                'OTP is invalid or expired.',
+                422
             );
         }
 
-        return $this->errorResponse(
-            __('messages.password_reset_failed'),
-            422
+        // التحقق من OTP
+        if (!Hash::check($request->code, $hashedOtp)) {
+            return $this->errorResponse(
+                'Invalid OTP.',
+                422
+            );
+        }
+
+        $user = User::where('email', $request->email)->first();
+
+        $user->update([
+            'password' => Hash::make($request->password),
+        ]);
+
+        // حذف OTP بعد استخدامه
+        Cache::forget($cacheKey);
+
+        return $this->successResponse(
+            [],
+            __('messages.password_reset_success'),
+            200
         );
     }
 
