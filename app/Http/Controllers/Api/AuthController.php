@@ -20,32 +20,32 @@ use App\Http\Requests\verifyOtpRequest;
 class AuthController extends Controller
 {
     use ApiResponse;
-public function register(RegisterRequest $request)
-{
-    $data = array_merge(
-        $request->validated(),
-        ['role' => 'delivery']
-    );
+    public function register(RegisterRequest $request)
+    {
+        $data = array_merge(
+            $request->validated(),
+            ['role' => 'delivery']
+        );
 
-    User::create($data);
+        User::create($data);
 
-    return $this->successMessage(__('auth.register_success'));
-}
-   public function login(LoginRequest $request)
-{
-    $user = User::where('phone', $request->phone)->first();
-
-    if (!$user || !Hash::check($request->password, $user->password)) {
-        return $this->errorResponse(__('auth.invalid_credentials'), 401);
+        return $this->successMessage(__('auth.register_success'));
     }
+    public function login(LoginRequest $request)
+    {
+        $user = User::where('email', $request->email)->first();
 
-    $token = $user->createToken('auth_token')->plainTextToken;
+        if (!$user || !Hash::check($request->password, $user->password)) {
+            return $this->errorResponse(__('auth.invalid_credentials'), 401);
+        }
 
-    return $this->successResponse([
-        'user' => new UserResource($user),
-        'access_token' => $token,
-    ], __('auth.login_success'));
-}
+        $token = $user->createToken('auth_token')->plainTextToken;
+
+        return $this->successResponse([
+            'user' => new UserResource($user),
+            'access_token' => $token,
+        ], __('auth.login_success'));
+    }
 
 
     public function forgotPassword(forgotPasswordRequest $request)
@@ -156,7 +156,7 @@ public function register(RegisterRequest $request)
     }
 
 
-        public function changePassword(Request $request)
+    public function changePassword(Request $request)
     {
         $user = auth()->user();
 
