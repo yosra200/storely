@@ -18,6 +18,7 @@ use App\Http\Requests\resetPasswordRequest;
 
 class AuthController extends Controller
 {
+
     use ApiResponse;
     public function register(RegisterRequest $request)
     {
@@ -62,7 +63,7 @@ class AuthController extends Controller
 
         // Save OTP
         $user->update([
-            'password_reset_otp' => Hash::make((string) $otp),
+            'password_reset_otp' => $otp,
             'password_reset_otp_expires_at' => now()->addMinutes(5),
         ]);
 
