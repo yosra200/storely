@@ -18,13 +18,15 @@ return new class extends Migration
             $table->decimal('delivery_latitude', 10, 7)->nullable();
             $table->decimal('delivery_longitude', 10, 7)->nullable();
 
-            $table->enum('status', [
-                'pending',
-                'created',
-                'in_delivery',
-                'delivered',
-                'cancelled',
-            ])->default('pending')->index();
+         $table->enum('status', [
+    'pending',
+    'created',
+    'received',
+    'in_delivery',
+    'delivered',
+    'on_hold',
+    'cancelled',
+])->default('pending')->index();
 
             $table->enum('payment_method', ['cash_on_delivery', 'online'])->nullable();
             $table->enum('payment_status', ['pending', 'link_sent', 'paid', 'failed', 'cancelled'])

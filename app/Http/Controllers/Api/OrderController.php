@@ -6,6 +6,8 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\AddOrderSalesRequest;
 use App\Http\Requests\AddOrderSupervisorRequest;
 use App\Http\Requests\OrderRequest;
+use App\Http\Requests\ChangeDeliveryOrderStatusRequest;
+use App\Http\Requests\updateDeliveryLocationRequest;
 use App\Http\Resources\OrderResource;
 use App\Models\Order;
 use App\Models\User;
@@ -48,6 +50,7 @@ class OrderController extends Controller
         );
     }
 
+    //deliveryOrders
     public function deliveryOrders(Request $request)
     {
         $user = auth()->user();
@@ -67,6 +70,66 @@ class OrderController extends Controller
             OrderResource::collection($orders),
             __('messages.success')
         );
+    }
+
+    public function changeDeliveryOrderStatus(
+        ChangeDeliveryOrderStatusRequest $request,
+        Order $order
+    ) {
+        $user = auth()->user();
+
+        if ($order->delivery_id !== $user->id) {
+            return $this->errorResponse(
+                __('messages.unauthorized'),
+                403
+            );
+        }
+
+        $validated = $request->validated();
+
+        $order->update($validated);
+
+        // يبدأ الـ Live Tracking عند استلام الدليفري للأوردر
+        if ($order->status === 'received') {
+            event(new DeliveryTrackingStarted($order));
+        }
+
+        return $this->successResponse(
+            new OrderResource($order->fresh()),
+            __('messages.updated_success')
+        );
+    }
+
+
+    public function updateDeliveryLocation(
+        updateDeliveryLocationRequest $request,
+        Order $order
+    ) {
+
+
+        $user = auth()->user();
+
+        if ($order->delivery_id !== $user->id) {
+            return $this->errorResponse(
+                __('messages.unauthorized'),
+                403
+            );
+        }
+
+        $order->delivery()->update([
+            'latitude' => $request->latitude,
+            'longitude' => $request->longitude,
+        ]);
+
+        broadcast(new DeliveryLocationUpdated(
+            $order,
+            $request->latitude,
+            $request->longitude
+        ));
+
+        return response()->json([
+            'message' => 'Location updated successfully',
+        ]);
     }
 
     public function store(OrderRequest $request, WhatsAppService $whatsapp)
@@ -94,7 +157,7 @@ class OrderController extends Controller
         );
 
         $orderData['customer_id'] = $customer->id;
-        $orderData['order_number'] = 'ORD-'.strtoupper(uniqid());
+        $orderData['order_number'] = 'ORD-' . strtoupper(uniqid());
 
         // Create Order
         $order = Order::create($orderData);
@@ -131,7 +194,7 @@ class OrderController extends Controller
             $orderData['products']
         );
 
-        $orderData['order_number'] = 'ORD-'.strtoupper(uniqid());
+        $orderData['order_number'] = 'ORD-' . strtoupper(uniqid());
         $orderData['customer_id'] = null;
         $orderData['subtotal'] = $data['subtotal'] ?? ($data['total_amount'] - ($data['delivery_fee'] ?? 0));
         $orderData['delivery_fee'] = $data['delivery_fee'] ?? 0;
@@ -173,7 +236,7 @@ class OrderController extends Controller
         );
 
         $order = Order::create([
-            'order_number' => 'ORD-'.strtoupper(uniqid()),
+            'order_number' => 'ORD-' . strtoupper(uniqid()),
             'customer_id' => $customer->id,
             'status' => 'pending',
             'payment_status' => 'pending',

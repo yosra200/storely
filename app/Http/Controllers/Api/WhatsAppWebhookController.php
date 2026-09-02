@@ -279,7 +279,7 @@ class WhatsAppWebhookController extends Controller
             });
     }
 
-    private function distanceInKilometers(
+    private function  distanceInKilometers(
         float $fromLatitude,
         float $fromLongitude,
         float $toLatitude,
