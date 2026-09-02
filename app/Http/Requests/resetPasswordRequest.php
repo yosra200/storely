@@ -12,7 +12,7 @@ class resetPasswordRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return false;
+        return true;
     }
 
     /**
@@ -23,7 +23,9 @@ class resetPasswordRequest extends FormRequest
     public function rules(): array
     {
         return [
-            ''
+            'email' => 'required|email|exists:users,email',
+            'otp' => 'required|digits:6',
+            'password' => 'required|string|min:8|confirmed',
         ];
     }
 }

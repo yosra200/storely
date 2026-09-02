@@ -14,6 +14,7 @@ use App\Http\Requests\forgotPasswordRequest;
 use Illuminate\Support\Facades\Mail;
 use App\Mail\PasswordResetOtpMail;
 use App\Http\Requests\verifyOtpRequest;
+use App\Http\Requests\resetPasswordRequest;
 
 class AuthController extends Controller
 {
@@ -92,7 +93,7 @@ class AuthController extends Controller
 
         if (
             !$user->password_reset_otp ||
-            !Hash::check((string) $request->otp, $user->password_reset_otp)
+            !$this->otpMatches((string) $request->otp, $user->password_reset_otp)
         ) {
             return $this->errorResponse(
                 __('messages.invalid_otp'),
@@ -119,19 +120,22 @@ class AuthController extends Controller
 
 
 
-    public function resetPassword(Request $request)
+    public function resetPassword(ResetPasswordRequest $request)
     {
-        $request->validate([
-            'email' => 'required|email|exists:users,email',
-            'otp' => 'required|digits:6',
-            'password' => 'required|string|min:8|confirmed',
-        ]);
+        $user = User::where('email', $request->email)
+            ->where('password_reset_otp', $request->otp)
+            ->first();
 
-        $user = User::where('email', $request->email)->firstOrFail();
+        if (! $user) {
+            return $this->errorResponse(
+                __('messages.invalid_otp'),
+                422
+            );
+        }
 
         if (
-            !$user->password_reset_otp ||
-            !$user->password_reset_otp_expires_at ||
+            ! $user->password_reset_otp ||
+            ! $user->password_reset_otp_expires_at ||
             now()->greaterThanOrEqualTo($user->password_reset_otp_expires_at)
         ) {
             return $this->errorResponse(
@@ -140,15 +144,8 @@ class AuthController extends Controller
             );
         }
 
-        if (!Hash::check((string) $request->otp, $user->password_reset_otp)) {
-            return $this->errorResponse(
-                __('messages.invalid_otp'),
-                422
-            );
-        }
-
         $user->update([
-            'password' => Hash::make($request->password),
+            'password' => $request->password,
             'password_reset_otp' => null,
             'password_reset_otp_expires_at' => null,
         ]);
@@ -159,6 +156,15 @@ class AuthController extends Controller
             200
         );
     }
+    public function otpMatches(string $inputOtp, string $hashedOtp): bool
+    {
+
+        $user = user::where('password_reset_otp', $hashedOtp)->first();
+
+        return $user;
+    }
+
+
 
     public function logout(Request $request)
     {
