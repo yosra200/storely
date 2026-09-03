@@ -32,7 +32,8 @@ class User extends Authenticatable
         'last_seen_at',
         'image',
         'password_reset_otp',
-        'password_reset_otp_expires_at'
+        'password_reset_otp_expires_at',
+        'system_type'
     ];
 
 
