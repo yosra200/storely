@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use App\Models\User;
 use App\Traits\ApiResponse;
 use App\Http\Requests\addCustomerRequest;
+use App\Http\Resources\UserResource;
 
 class CustomerController extends Controller
 {

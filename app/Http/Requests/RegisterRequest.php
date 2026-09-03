@@ -29,7 +29,11 @@ class RegisterRequest extends FormRequest
             'phone' => ['required', 'string', 'max:20', 'unique:users'],
             'latitude' => ['nullable', 'numeric'],
             'longitude' => ['nullable', 'numeric'],
-            'image' => ['nullable']
+            'image' => ['nullable'],
+            'role' => ['required', 'string', 'in:customer,delivery,packing,sales,supervisor,'],
+            'system_type' => ['required', 'in:system_one,system_two'],
+
+
         ];
     }
 }

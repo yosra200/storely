@@ -22,6 +22,7 @@ return new class extends Migration
                 'packing',
                 'customer',
             ])->default('delivery')->index();
+            $table->enum('system_type', ['system_one', 'system_two'])->nullable();
             $table->string('profile_photo_path')->nullable();
             $table->text('address')->nullable();
             $table->string('image')->nullable();
