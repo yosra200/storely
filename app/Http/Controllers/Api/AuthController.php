@@ -18,7 +18,7 @@ use App\Http\Requests\resetPasswordRequest;
 
 class AuthController extends Controller
 {
-
+ 
     use ApiResponse;
     public function register(RegisterRequest $request)
     {

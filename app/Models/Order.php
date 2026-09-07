@@ -14,6 +14,7 @@ class Order extends Model
         'delivery_address',
         'delivery_latitude',
         'delivery_longitude',
+        'delivery_heading',
         'status',
         'payment_method',
         'payment_status',

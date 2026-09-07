@@ -9,6 +9,9 @@ use App\Http\Requests\OrderRequest;
 use App\Http\Requests\ChangeDeliveryOrderStatusRequest;
 use App\Http\Requests\updateDeliveryLocationRequest;
 use App\Http\Resources\OrderResource;
+use App\Events\DeliveryLocationUpdated;
+use App\Models\DeliveryTrackingLocation;
+use Carbon\Carbon;
 use App\Models\Order;
 use App\Models\User;
 use App\Services\Facebook\WhatsAppService;
@@ -89,10 +92,10 @@ class OrderController extends Controller
 
         $order->update($validated);
 
-        // يبدأ الـ Live Tracking عند استلام الدليفري للأوردر
-        if ($order->status === 'received') {
-            event(new DeliveryTrackingStarted($order));
-        }
+        // // يبدأ الـ Live Tracking عند استلام الدليفري للأوردر
+        // if ($order->status === 'received') {
+        //     event(new DeliveryTrackingStarted($order));
+        // }
 
         return $this->successResponse(
             new OrderResource($order->fresh()),
@@ -104,9 +107,7 @@ class OrderController extends Controller
     public function updateDeliveryLocation(
         updateDeliveryLocationRequest $request,
         Order $order
-    ) {
-
-
+    ) {     
         $user = auth()->user();
 
         if ($order->delivery_id !== $user->id) {
@@ -116,20 +117,61 @@ class OrderController extends Controller
             );
         }
 
-        $order->delivery()->update([
-            'latitude' => $request->latitude,
-            'longitude' => $request->longitude,
+        $validated = $request->validated();
+        $recordedAt = isset($validated['recorded_at'])
+            ? Carbon::parse($validated['recorded_at'])
+            : now();
+
+        $order->update([
+            'delivery_latitude' => $validated['latitude'],
+            'delivery_longitude' => $validated['longitude'],
+            'delivery_heading' => $validated['heading'] ?? null,
+        ]);
+
+        $location = DeliveryTrackingLocation::create([
+            'order_id' => $order->id,
+            'delivery_id' => $user->id,
+            'latitude' => $validated['latitude'],
+            'longitude' => $validated['longitude'],
+            'heading' => $validated['heading'] ?? null,
+            'speed' => $validated['speed'] ?? null,
+            'captured_at' => $recordedAt,
         ]);
 
         broadcast(new DeliveryLocationUpdated(
             $order,
-            $request->latitude,
-            $request->longitude
+            (float) $validated['latitude'],
+            (float) $validated['longitude'],
+            $validated['heading'] ?? null,
+            $validated['speed'] ?? null,
+            $location->captured_at
         ));
 
-        return response()->json([
-            'message' => 'Location updated successfully',
-        ]);
+        return $this->successResponse([
+            'order_id' => $order->id,
+            'lat' => (float) $location->latitude,
+            'lng' => (float) $location->longitude,
+            'heading' => $location->heading,
+            'speed' => $location->speed,
+            'recorded_at' => $location->captured_at?->toIso8601String(),
+        ], __('messages.updated_success'));
+    }
+
+    public function deliveryLocation(Order $order)
+    {
+        $latest = DeliveryTrackingLocation::query()
+            ->where('order_id', $order->id)
+            ->latest('captured_at')
+            ->first();
+
+        return $this->successResponse([
+            'order_id' => $order->id,
+            'lat' => $latest?->latitude,
+            'lng' => $latest?->longitude,
+            'heading' => $latest?->heading,
+            'speed' => $latest?->speed,
+            'recorded_at' => $latest?->captured_at?->toIso8601String(),
+        ], __('messages.success'));
     }
 
     public function store(OrderRequest $request, WhatsAppService $whatsapp)

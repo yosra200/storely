@@ -54,6 +54,8 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/orders/addordersupervisor', [OrderController::class, 'addOrderSupervisor']);
     Route::post('/orders/addordersales', [OrderController::class, 'addOrderSales']);
     Route::get('/orders/{order}', [OrderController::class, 'show']);
+    Route::post('/orders/{order}/delivery-location', [OrderController::class, 'updateDeliveryLocation']);
+    Route::get('/orders/{order}/delivery-location', [OrderController::class, 'deliveryLocation']);
     Route::get('/orders', [OrderController::class, 'index']);
     Route::get('/sales', [OrderController::class, 'sales']);
 
