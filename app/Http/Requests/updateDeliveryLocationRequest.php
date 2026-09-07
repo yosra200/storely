@@ -25,9 +25,9 @@ class updateDeliveryLocationRequest extends FormRequest
         return [
             'latitude' => ['required', 'numeric', 'between:-90,90'],
             'longitude' => ['required', 'numeric', 'between:-180,180'],
-            'heading' => ['nullable', 'numeric', 'between:0,360'],
-            'speed' => ['nullable', 'numeric', 'min:0'],
-            'recorded_at' => ['nullable', 'date'],
+            'heading' => ['required', 'numeric', 'between:0,360'],
+            'speed' => ['required', 'numeric', 'min:0'],
+            'recorded_at' => ['required', 'date'],
         ];
     }
 }

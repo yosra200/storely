@@ -9,6 +9,7 @@ use App\Http\Requests\OrderRequest;
 use App\Http\Requests\ChangeDeliveryOrderStatusRequest;
 use App\Http\Requests\updateDeliveryLocationRequest;
 use App\Http\Resources\OrderResource;
+use App\Http\Resources\DeliveryTrackingLocationResource;
 use App\Events\DeliveryLocationUpdated;
 use App\Models\DeliveryTrackingLocation;
 use Carbon\Carbon;
@@ -107,10 +108,10 @@ class OrderController extends Controller
     public function updateDeliveryLocation(
         updateDeliveryLocationRequest $request,
         Order $order
-    ) {     
-        $user = auth()->user();
+    ) {
+        $user = $request->user();
 
-        if ($order->delivery_id !== $user->id) {
+        if (! $user || (int) $order->delivery_id !== (int) $user->id) {
             return $this->errorResponse(
                 __('messages.unauthorized'),
                 403
@@ -118,43 +119,47 @@ class OrderController extends Controller
         }
 
         $validated = $request->validated();
+        $latitude = (float) $validated['latitude'];
+        $longitude = (float) $validated['longitude'];
+        $heading = isset($validated['heading'])
+            ? (float) $validated['heading']
+            : null;
+        $speed = isset($validated['speed'])
+            ? (float) $validated['speed']
+            : null;
         $recordedAt = isset($validated['recorded_at'])
             ? Carbon::parse($validated['recorded_at'])
             : now();
 
         $order->update([
-            'delivery_latitude' => $validated['latitude'],
-            'delivery_longitude' => $validated['longitude'],
-            'delivery_heading' => $validated['heading'] ?? null,
+            'delivery_latitude' => $latitude,
+            'delivery_longitude' => $longitude,
+            'delivery_heading' => $heading,
         ]);
 
         $location = DeliveryTrackingLocation::create([
             'order_id' => $order->id,
             'delivery_id' => $user->id,
-            'latitude' => $validated['latitude'],
-            'longitude' => $validated['longitude'],
-            'heading' => $validated['heading'] ?? null,
-            'speed' => $validated['speed'] ?? null,
+            'latitude' => $latitude,
+            'longitude' => $longitude,
+            'heading' => $heading,
+            'speed' => $speed,
             'captured_at' => $recordedAt,
         ]);
 
         broadcast(new DeliveryLocationUpdated(
             $order,
-            (float) $validated['latitude'],
-            (float) $validated['longitude'],
-            $validated['heading'] ?? null,
-            $validated['speed'] ?? null,
+            $latitude,
+            $longitude,
+            $heading,
+            $speed,
             $location->captured_at
         ));
 
-        return $this->successResponse([
-            'order_id' => $order->id,
-            'lat' => (float) $location->latitude,
-            'lng' => (float) $location->longitude,
-            'heading' => $location->heading,
-            'speed' => $location->speed,
-            'recorded_at' => $location->captured_at?->toIso8601String(),
-        ], __('messages.updated_success'));
+        return $this->successResponse(
+            new DeliveryTrackingLocationResource($location),
+            __('messages.updated_success')
+        );
     }
 
     public function deliveryLocation(Order $order)
