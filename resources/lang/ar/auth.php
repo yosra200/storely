@@ -11,4 +11,6 @@ return [
     'phone_changed' => 'تم تغيير رقم الجوال بنجاح',
     'logout_success' => 'تم تسجيل الخروج بنجاح',
     'unauthenticated' => 'غير مصرح لك بالدخول',
+    'login_success' => 'تم تسجيل الدخول بنجاح',
+    'invalid_credentials' => 'بيانات الدخول غير صحيحة',
 ];

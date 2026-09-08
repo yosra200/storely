@@ -13,6 +13,18 @@ return [
     'mimes'    => 'يجب أن يكون :attribute من نوع: :values.',
 
     'regex'    => 'صيغة :attribute غير صحيحة.',
+    'string'   => 'يجب أن يكون :attribute نصًا.',
+    'lowercase' => 'يجب أن يكون :attribute بأحرف صغيرة.',
+    'in'       => 'القيمة المحددة لـ :attribute غير صحيحة.',
+    'different' => 'يجب أن يختلف :attribute عن :other.',
+    'required_without' => 'حقل :attribute مطلوب عند عدم إدخال :values.',
+    'prohibited_with' => 'لا يمكن إدخال :attribute مع :values.',
+    'between' => [
+        'numeric' => 'يجب أن تكون قيمة :attribute بين :min و :max.',
+    ],
+    'mixed_case' => 'يجب أن يحتوي :attribute على أحرف كبيرة وصغيرة.',
+    'numbers' => 'يجب أن يحتوي :attribute على رقم واحد على الأقل.',
+    'symbols' => 'يجب أن يحتوي :attribute على رمز واحد على الأقل.',
 
 
     'max' => [
@@ -71,6 +83,12 @@ return [
         'commercial_register' => 'السجل التجاري',
         'tax_card' => 'الرقم الضريبي',
         'changed_phone' => 'رقم الهاتف الجديد',
+        'system_type' => 'نوع النظام',
+        'role' => 'الصلاحية',
+        'otp' => 'رمز التحقق',
+        'image' => 'الصورة',
+        'current_password' => 'كلمة المرور الحالية',
+        'new_password' => 'كلمة المرور الجديدة',
     ],
 
     'values' => [

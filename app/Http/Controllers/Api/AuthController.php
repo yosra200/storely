@@ -18,7 +18,7 @@ use App\Http\Requests\resetPasswordRequest;
 
 class AuthController extends Controller
 {
- 
+
     use ApiResponse;
     public function register(RegisterRequest $request)
     {
@@ -72,8 +72,7 @@ class AuthController extends Controller
             new PasswordResetOtpMail($otp)
         );
 
-        return $this->successResponse(
-            [],
+        return $this->successMessage(
             __('messages.otp_sent_successfully'),
             200
         );
@@ -144,15 +143,19 @@ class AuthController extends Controller
                 422
             );
         }
-
+        if (Hash::check($request->password, $user->password)) {
+            return $this->errorResponse(
+                __('messages.password_same_as_old'),
+                422
+            );
+        }
         $user->update([
             'password' => $request->password,
             'password_reset_otp' => null,
             'password_reset_otp_expires_at' => null,
         ]);
 
-        return $this->successResponse(
-            [],
+        return $this->successMessage(
             __('messages.password_reset_success'),
             200
         );

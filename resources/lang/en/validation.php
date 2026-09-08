@@ -9,6 +9,20 @@ return [
     'exists'   => 'The selected :attribute is invalid.',
     'image'    => 'The :attribute must be an image.',
     'mimes'    => 'The :attribute must be a file of type: :values.',
+    'string'   => 'The :attribute must be a string.',
+    'lowercase' => 'The :attribute must be lowercase.',
+    'in'       => 'The selected :attribute is invalid.',
+    'different' => 'The :attribute and :other must be different.',
+    'required_without' => 'The :attribute field is required when :values is not present.',
+    'prohibited_with' => 'The :attribute field is prohibited when :values is present.',
+    'between' => [
+        'numeric' => 'The :attribute must be between :min and :max.',
+    ],
+    'confirmed' => 'The :attribute confirmation does not match.',
+    'digits' => 'The :attribute must be :digits digits.',
+    'mixed_case' => 'The :attribute must contain both uppercase and lowercase letters.',
+    'numbers' => 'The :attribute must contain at least one number.',
+    'symbols' => 'The :attribute must contain at least one symbol.',
     'max'      => [
         'numeric' => 'The :attribute must not be greater than :max.',
         'file'    => 'The :attribute must not be greater than :max kilobytes.',
@@ -63,6 +77,12 @@ return [
         'report'       => 'report',
         'official_number' => 'official number',
         'changed_phone' => 'changed phone',
+        'system_type' => 'system type',
+        'role' => 'role',
+        'otp' => 'OTP',
+        'image' => 'image',
+        'current_password' => 'current password',
+        'new_password' => 'new password',
 
 
     ],

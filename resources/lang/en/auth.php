@@ -11,4 +11,6 @@ return [
     'phone_changed' => 'Phone changed successfully',
     'logout_success' => 'Logged out successfully',
     'unauthenticated' => 'You are not authenticated',
+    'login_success' => 'Logged in successfully',
+    'invalid_credentials' => 'The provided credentials are incorrect',
 ];

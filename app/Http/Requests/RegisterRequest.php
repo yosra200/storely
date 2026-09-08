@@ -7,33 +7,78 @@ use Illuminate\Foundation\Http\FormRequest;
 
 class RegisterRequest extends FormRequest
 {
-    /**
-     * Determine if the user is authorized to make this request.
-     */
     public function authorize(): bool
     {
         return true;
     }
 
-    /**
-     * Get the validation rules that apply to the request.
-     *
-     * @return array<string, ValidationRule|array<mixed>|string>
-     */
     public function rules(): array
     {
         return [
-            'name' => ['required', 'string', 'max:255'],
-            'email' => ['required', 'string', 'email', 'max:255', 'unique:users'],
-            'password' => ['required', 'string', 'min:8', 'confirmed'],
-            'phone' => ['required', 'string', 'max:20', 'unique:users'],
-            'latitude' => ['nullable', 'numeric'],
-            'longitude' => ['nullable', 'numeric'],
-            'image' => ['nullable'],
-            'role' => ['required', 'string', 'in:customer,delivery,packing,sales,supervisor,'],
-            'system_type' => ['required', 'in:system_one,system_two'],
+            'name' => [
+                'required',
+                'string',
+                'min:3',
+                'max:255',
+            ],
 
+            'email' => [
+                'required',
+                'string',
+                'email:rfc,dns',
+                'max:255',
+                'unique:users,email',
+            ],
 
+            'password' => [
+                'required',
+                'string',
+                'min:8',
+                'max:100',
+                'confirmed',
+                'regex:/[a-zA-Z]/',
+                'regex:/[0-9]/',
+            ],
+
+            'phone' => [
+                'required',
+                'string',
+                // 'regex:/^[0-9+\-\s()]+$/',
+                'min:8',
+                'max:20',
+                'unique:users,phone',
+            ],
+
+            'latitude' => [
+                'nullable',
+                'numeric',
+                'between:-90,90',
+            ],
+
+            'longitude' => [
+                'nullable',
+                'numeric',
+                'between:-180,180',
+            ],
+
+            'image' => [
+                'nullable',
+                'image',
+                'mimes:jpg,jpeg,png,webp',
+                'max:5120',
+            ],
+
+            'role' => [
+                'required',
+                'string',
+                'in:customer,delivery,packing,sales,supervisor',
+            ],
+
+            'system_type' => [
+                'required',
+                'string',
+                'in:system_one,system_two',
+            ],
         ];
     }
 }
