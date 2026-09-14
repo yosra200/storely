@@ -8,8 +8,8 @@ use App\Http\Controllers\Api\OrderController;
 use App\Http\Controllers\Api\CustomerController;
 use App\Http\Controllers\Api\DeliveryController;
 use App\Http\Controllers\Api\LiveController;
+use App\Http\Controllers\Api\LiveRequestController;
 use App\Http\Controllers\Api\HomeController;
-use App\Http\Controllers\Api\DeliveryController;
 
 Route::get('/user', function (Request $request) {
     return $request->user();
@@ -66,12 +66,10 @@ Route::middleware('auth:sanctum')->group(function () {
     //customers
     Route::post('/customers', [CustomerController::class, 'store']);
     Route::get('/customers', [CustomerController::class, 'customer']);
-<<<<<<< Updated upstream
-=======
+
     Route::get('/customers/{user}', [CustomerController::class, 'show']);
     Route::patch('/customers/{user}', [CustomerController::class, 'update']);
     Route::delete('/customers/{user}', [CustomerController::class, 'destroy']);
->>>>>>> Stashed changes
 
     //deliveries
     Route::get('/deliveries', [DeliveryController::class, 'deliveries']);
@@ -85,6 +83,12 @@ Route::middleware('auth:sanctum')->group(function () {
     // Get Live details
     Route::get('/lives/{live}', [LiveController::class, 'show']);
 
+    // Live requests
+    Route::get('/live-requests', [LiveRequestController::class, 'index']);
+    Route::post('/live-requests', [LiveRequestController::class, 'store']);
+    Route::get('/live-requests/{liveRequest}', [LiveRequestController::class, 'show']);
+    Route::post('/live-requests/{liveRequest}/accept', [LiveRequestController::class, 'accept']);
+    Route::post('/live-requests/{liveRequest}/reject', [LiveRequestController::class, 'reject']);
 
     //Home
     Route::get('/home', [HomeController::class, 'index']);
