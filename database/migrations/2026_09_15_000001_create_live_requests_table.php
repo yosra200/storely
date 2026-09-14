@@ -15,9 +15,7 @@ return new class extends Migration
                 ->constrained('users')
                 ->cascadeOnDelete();
 
-            $table->foreignId('live_id')
-                ->constrained('lives')
-                ->cascadeOnDelete();
+            $table->unsignedBigInteger('live_id')->unique();
 
             $table->string('title');
             $table->text('description')->nullable();

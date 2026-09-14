@@ -28,7 +28,7 @@ class LiveRequest extends Model
 
     public function live()
     {
-        return $this->belongsTo(Live::class, 'live_id');
+        return $this->belongsTo(live::class, 'live_id');
     }
 
     public function reviewer()
