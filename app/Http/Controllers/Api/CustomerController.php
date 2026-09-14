@@ -8,7 +8,7 @@ use App\Http\Requests\UpdateUserRequest;
 use App\Http\Resources\UserResource;
 use App\Models\User;
 use App\Traits\ApiResponse;
-
+use Illuminate\Http\Request;
 class CustomerController extends Controller
 {
     use ApiResponse;
