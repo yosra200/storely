@@ -14,7 +14,7 @@ class LiveRequestStoreRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'live_id' => ['required', 'integer', 'exists:lives,id'],
+            'live_id' => ['required', 'integer'],
             'title' => ['required', 'string', 'max:255'],
             'description' => ['nullable', 'string'],
         ];
