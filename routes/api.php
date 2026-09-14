@@ -6,6 +6,7 @@ use App\Http\Controllers\Api\WhatsAppWebhookController;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\OrderController;
 use App\Http\Controllers\Api\CustomerController;
+use App\Http\Controllers\Api\DeliveryController;
 use App\Http\Controllers\Api\LiveController;
 use App\Http\Controllers\Api\HomeController;
 use App\Http\Controllers\Api\DeliveryController;
@@ -65,6 +66,12 @@ Route::middleware('auth:sanctum')->group(function () {
     //customers
     Route::post('/customers', [CustomerController::class, 'store']);
     Route::get('/customers', [CustomerController::class, 'customer']);
+<<<<<<< Updated upstream
+=======
+    Route::get('/customers/{user}', [CustomerController::class, 'show']);
+    Route::patch('/customers/{user}', [CustomerController::class, 'update']);
+    Route::delete('/customers/{user}', [CustomerController::class, 'destroy']);
+>>>>>>> Stashed changes
 
     //deliveries
     Route::get('/deliveries', [DeliveryController::class, 'deliveries']);
@@ -79,6 +86,6 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/lives/{live}', [LiveController::class, 'show']);
 
 
-    //Home 
+    //Home
     Route::get('/home', [HomeController::class, 'index']);
 });
