@@ -232,12 +232,12 @@ $locationResponse = $whatsapp->sendLocationRequest(
     $order->order_number
 );
 
-dd([
-    'status' => $locationResponse->status(),
-    'successful' => $locationResponse->successful(),
-    'body' => $locationResponse->body(),
-    'json' => $locationResponse->json(),
-]);
+// dd([
+//     'status' => $locationResponse->status(),
+//     'successful' => $locationResponse->successful(),
+//     'body' => $locationResponse->body(),
+//     'json' => $locationResponse->json(),
+// ]);
 
         return $this->successResponse(
             $order->load('items'),
