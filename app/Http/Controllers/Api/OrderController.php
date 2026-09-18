@@ -223,11 +223,21 @@ class OrderController extends Controller
         //     $customer->phone,
         //     "أهلاً بك 👋\n\nتم إنشاء طلبك رقم #{$order->order_number}."
         // );
-        $whatsapp->sendMessage(
+$whatsapp->sendMessage(
+    $customer->phone
+);
+
+$locationResponse = $whatsapp->sendLocationRequest(
     $customer->phone,
     $order->order_number
 );
-        $whatsapp->sendLocationRequest($customer->phone, $order->order_number);
+
+dd([
+    'status' => $locationResponse->status(),
+    'successful' => $locationResponse->successful(),
+    'body' => $locationResponse->body(),
+    'json' => $locationResponse->json(),
+]);
 
         return $this->successResponse(
             $order->load('items'),
