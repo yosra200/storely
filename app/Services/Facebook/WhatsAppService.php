@@ -17,7 +17,7 @@ class WhatsAppService
                 [
                     'messaging_product' => 'whatsapp',
                     'to' => $phone,
-                    'type' => 'text',
+                'type' => 'template',
                     'text' => [
                         'body' => $message,
                     ],
