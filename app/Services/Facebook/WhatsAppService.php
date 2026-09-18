@@ -9,21 +9,24 @@ class WhatsAppService
 {
     protected string $graphUrl = 'https://graph.facebook.com/v26.0';
 
-    public function sendMessage(string $phone, string $message)
-    {
-        return Http::withToken(config('services.whatsapp.token'))
-            ->post(
-                $this->graphUrl.'/'.config('services.whatsapp.phone_number_id').'/messages',
-                [
-                    'messaging_product' => 'whatsapp',
-                    'to' => $phone,
+  public function sendTemplate(string $phone)
+{
+    return Http::withToken(config('services.whatsapp.token'))
+        ->post(
+            $this->graphUrl . '/' . config('services.whatsapp.phone_number_id') . '/messages',
+            [
+                'messaging_product' => 'whatsapp',
+                'to' => $phone,
                 'type' => 'template',
-                    'text' => [
-                        'body' => $message,
+                'template' => [
+                    'name' => 'hello_world',
+                    'language' => [
+                        'code' => 'en_US',
                     ],
-                ]
-            );
-    }
+                ],
+            ]
+        );
+}
 
     public function sendLocationRequest(string $phone, string $orderNumber)
     {
