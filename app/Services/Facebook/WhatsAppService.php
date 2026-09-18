@@ -9,7 +9,7 @@ class WhatsAppService
 {
     protected string $graphUrl = 'https://graph.facebook.com/v26.0';
 
-  public function sendTemplate(string $phone)
+  public function sendMessage(string $phone)
 {
     return Http::withToken(config('services.whatsapp.token'))
         ->post(
