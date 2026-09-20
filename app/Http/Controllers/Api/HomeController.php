@@ -50,10 +50,20 @@ class HomeController extends Controller
                 ->where('status', 'delivered')
                 ->count();
 
+            $latestOrders = Order::with([
+                'customer',
+                'items',
+            ])
+                ->where('delivery_id', $user->id)
+                ->latest()
+                ->take(3)
+                ->get();
+
             return $this->successResponse(
                 [
                     'created_orders' => $createdOrders,
                     'delivered_orders' => $deliveredOrders,
+                    'latest_orders' => OrderResource::collection($latestOrders),
                 ],
                 __('messages.success')
             );

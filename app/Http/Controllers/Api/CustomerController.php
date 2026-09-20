@@ -64,16 +64,22 @@ class CustomerController extends Controller
         );
     }
 
-    public function update(UpdateUserRequest $request, User $user)
+    public function update(UpdateUserRequest $request, $user)
     {
         if (!$this->canManageCustomers()) {
             return $this->errorResponse(__('messages.unauthorized'), 403);
         }
 
-        $user->update($request->validated());
+        $customer = User::find($user);
+
+        if (! $customer) {
+            return $this->errorResponse(__('messages.not_found'), 404);
+        }
+
+        $customer->update($request->validated());
 
         return $this->successResponse(
-            new UserResource($user->fresh()),
+            new UserResource($customer->fresh()),
             __('messages.update_success')
         );
     }
@@ -92,13 +98,19 @@ class CustomerController extends Controller
         );
     }
 
-    public function destroy(User $user)
+    public function destroy($user)
     {
         if (!$this->canManageCustomers()) {
             return $this->errorResponse(__('messages.unauthorized'), 403);
         }
 
-        $user->delete();
+        $customer = User::find($user);
+
+        if (! $customer) {
+            return $this->errorResponse(__('messages.not_found'), 404);
+        }
+
+        $customer->delete();
 
         return $this->successResponse(
             null,
