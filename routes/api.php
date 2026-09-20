@@ -61,6 +61,8 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/sales', [OrderController::class, 'sales']);
 
     Route::get('/deliveries/orders', [OrderController::class, 'deliveryOrders']);
+    Route::get('/deliveries/orders/{order}', [OrderController::class, 'deliveryOrder']);
+    Route::patch('/deliveries/orders/{order}/status', [OrderController::class, 'changeDeliveryOrderStatus']);
 
 
     //customers
@@ -68,7 +70,8 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/customers', [CustomerController::class, 'customer']);
 
     Route::get('/customers/{user}', [CustomerController::class, 'show']);
-    Route::patch('/customers/{user}', [CustomerController::class, 'update']);
+    Route::match(['post', 'patch'], '/customers/{user}', [CustomerController::class, 'update']);
+    Route::patch('/customers/{user}/status', [CustomerController::class, 'updateStatus']);
     Route::delete('/customers/{user}', [CustomerController::class, 'destroy']);
 
     //deliveries

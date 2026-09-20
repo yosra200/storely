@@ -1,6 +1,12 @@
 <?php
 
 return [
+    'success' => 'Completed successfully.',
+    'created_success' => 'Created successfully.',
+    'validation_failed' => 'The submitted data is invalid.',
+    'not_found' => 'The requested record was not found.',
+    'account_activated' => 'Account activated successfully.',
+    'account_deactivated' => 'Account deactivated successfully.',
     'update_success' => 'Updated successfully',
     'show_success' => 'Data retrieved successfully',
     'review_added_successfully' => 'Review added successfully',

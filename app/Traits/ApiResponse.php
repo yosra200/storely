@@ -23,10 +23,16 @@ trait ApiResponse
     // رسالة الفشل / الخطأ
     public function errorResponse($message = "حدث خطأ", $code = 400, $errors = null)
     {
-        return response()->json([
+        $response = [
             'status' => 'error',
             'message' => $message,
-        ], $code);
+        ];
+
+        if ($errors !== null) {
+            $response['errors'] = $errors;
+        }
+
+        return response()->json($response, $code);
     }
 
 

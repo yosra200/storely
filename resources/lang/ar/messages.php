@@ -1,6 +1,12 @@
 <?php
 
 return [
+    'success' => 'تمت العملية بنجاح.',
+    'created_success' => 'تم الإنشاء بنجاح.',
+    'validation_failed' => 'البيانات المُرسلة غير صحيحة.',
+    'not_found' => 'السجل المطلوب غير موجود.',
+    'account_activated' => 'تم تفعيل الحساب بنجاح.',
+    'account_deactivated' => 'تم تعطيل الحساب بنجاح.',
     'update_success' => 'تم التحديث بنجاح',
     'show_success' => 'تم عرض البيانات بنجاح',
     'review_added_successfully' => 'تم إضافة التقييم بنجاح',

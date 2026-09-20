@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\addCustomerRequest;
+use App\Http\Requests\UpdateCustomerStatusRequest;
 use App\Http\Requests\UpdateUserRequest;
 use App\Http\Resources\UserResource;
 use App\Models\User;
@@ -15,6 +16,10 @@ class CustomerController extends Controller
 
     public function store(addCustomerRequest $request)
     {
+        if (!$this->canManageCustomers()) {
+            return $this->errorResponse(__('messages.unauthorized'), 403);
+        }
+
         $data = array_merge(
             $request->validated(),
             ['role' => $request->input('role', 'customer')]
@@ -27,9 +32,7 @@ class CustomerController extends Controller
 
     public function customer(Request $request)
     {
-        $auth = auth()->user();
-
-        if (!$auth || !in_array($auth->role, ['manager', 'admin'], true)) {
+        if (!$this->canManageCustomers()) {
             return $this->errorResponse(__('messages.unauthorized'), 403);
         }
 
@@ -51,9 +54,7 @@ class CustomerController extends Controller
 
     public function show(User $user)
     {
-        $auth = auth()->user();
-
-        if (!$auth || !in_array($auth->role, ['manager', 'admin'], true)) {
+        if (!$this->canManageCustomers()) {
             return $this->errorResponse(__('messages.unauthorized'), 403);
         }
 
@@ -65,9 +66,7 @@ class CustomerController extends Controller
 
     public function update(UpdateUserRequest $request, User $user)
     {
-        $auth = auth()->user();
-
-        if (!$auth || !in_array($auth->role, ['admin', 'supervisor', 'sales', 'delivery', 'packing', 'customer'], true)) {
+        if (!$this->canManageCustomers()) {
             return $this->errorResponse(__('messages.unauthorized'), 403);
         }
 
@@ -79,11 +78,23 @@ class CustomerController extends Controller
         );
     }
 
+    public function updateStatus(UpdateCustomerStatusRequest $request, User $user)
+    {
+        if (!$this->canManageCustomers()) {
+            return $this->errorResponse(__('messages.unauthorized'), 403);
+        }
+
+        $user->update(['is_active' => $request->boolean('is_active')]);
+
+        return $this->successResponse(
+            new UserResource($user->fresh()),
+            $user->is_active ? __('messages.account_activated') : __('messages.account_deactivated')
+        );
+    }
+
     public function destroy(User $user)
     {
-        $auth = auth()->user();
-
-        if (!$auth || !in_array($auth->role, ['manager', 'admin'], true)) {
+        if (!$this->canManageCustomers()) {
             return $this->errorResponse(__('messages.unauthorized'), 403);
         }
 
@@ -93,5 +104,10 @@ class CustomerController extends Controller
             null,
             __('messages.success')
         );
+    }
+
+    private function canManageCustomers(): bool
+    {
+        return in_array(auth()->user()?->role, ['manager', 'admin'], true);
     }
 }

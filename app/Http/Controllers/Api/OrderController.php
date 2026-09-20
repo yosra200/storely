@@ -76,22 +76,39 @@ class OrderController extends Controller
         );
     }
 
+    public function deliveryOrder(Order $order)
+    {
+        $user = auth()->user();
+
+        if ((int) $order->delivery_id !== (int) $user->id) {
+            return $this->errorResponse(__('messages.not_found'), 404);
+        }
+
+        $order->load([
+            'customer',
+            'items',
+        ]);
+
+        return $this->successResponse(
+            new OrderResource($order),
+            __('messages.success')
+        );
+    }
+
     public function changeDeliveryOrderStatus(
         ChangeDeliveryOrderStatusRequest $request,
         Order $order
     ) {
-        $user = auth()->user();
+        $user = $request->user();
 
-        if ($order->delivery_id !== $user->id) {
+        if (! $user || (int) $order->delivery_id !== (int) $user->id) {
             return $this->errorResponse(
                 __('messages.unauthorized'),
                 403
             );
         }
 
-        $validated = $request->validated();
-
-        $order->update($validated);
+        $order->update($request->validated());
 
         // // يبدأ الـ Live Tracking عند استلام الدليفري للأوردر
         // if ($order->status === 'received') {
