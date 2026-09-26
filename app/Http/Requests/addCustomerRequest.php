@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests;
 
+use App\Models\User;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -26,7 +27,26 @@ class addCustomerRequest extends FormRequest
             'name' => ['required', 'string', 'max:255'],
             'email' => ['nullable', 'email', 'max:255', 'unique:users,email'],
             'phone' => ['required', 'string', 'min:8', 'max:20', 'unique:users,phone'],
-            'role' => ['nullable', Rule::in(['admin', 'supervisor', 'sales', 'delivery', 'packing', 'customer'])],
+            'role' => [
+                'nullable',
+                Rule::in(['admin', 'supervisor', 'sales', 'delivery', 'packing', 'customer']),
+                function (string $attribute, mixed $value, \Closure $fail) {
+                    if (! in_array($value, ['supervisor', 'packing'], true)) {
+                        return;
+                    }
+
+                    $query = User::query()->where('role', $value);
+
+                    if ($this->route('user')) {
+                        $userId = $this->route('user') instanceof User ? $this->route('user')->getKey() : $this->route('user');
+                        $query->whereKeyNot($userId);
+                    }
+
+                    if ($query->exists()) {
+                        $fail(__('messages.role_already_exists'));
+                    }
+                },
+            ],
             'address' => ['nullable', 'string'],
             'latitude' => ['nullable', 'numeric', 'between:-90,90'],
             'longitude' => ['nullable', 'numeric', 'between:-180,180'],

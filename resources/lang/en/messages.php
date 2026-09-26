@@ -28,6 +28,7 @@ return [
     'otp_expired' => 'OTP is invalid or expired.',
     'otp_verified_successfully' => 'OTP verified successfully.',
     'password_reset_success' => 'Password reset successfully.',
+    'role_already_exists' => 'A user with this role already exists.',
     'unauthorized' => 'You are not authorized to perform this action.',
     'current_password_incorrect' => 'The current password is incorrect.',
     'password_changed_successfully' => 'Password changed successfully.',

@@ -21,7 +21,24 @@ class UpdateUserRequest extends FormRequest
         return [
             'name' => ['nullable', 'string', 'max:255'],
             'email' => ['nullable', 'email', 'max:255', Rule::unique('users', 'email')->ignore($userId)],
-            'role' => ['nullable', Rule::in(['admin', 'supervisor', 'sales', 'delivery', 'packing', 'customer'])],
+            'role' => [
+                'nullable',
+                Rule::in(['admin', 'supervisor', 'sales', 'delivery', 'packing', 'customer']),
+                function (string $attribute, mixed $value, \Closure $fail) use ($userId) {
+                    if (! in_array($value, ['supervisor', 'packing'], true)) {
+                        return;
+                    }
+
+                    $exists = User::query()
+                        ->where('role', $value)
+                        ->whereKeyNot($userId)
+                        ->exists();
+
+                    if ($exists) {
+                        $fail(__('messages.role_already_exists'));
+                    }
+                },
+            ],
             'address' => ['nullable', 'string'],
             'latitude' => ['nullable', 'numeric', 'between:-90,90'],
             'longitude' => ['nullable', 'numeric', 'between:-180,180'],

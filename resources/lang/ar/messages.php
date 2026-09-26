@@ -32,6 +32,7 @@ return [
     'otp_expired' => 'رمز التحقق غير صحيح أو منتهي الصلاحية.',
     'otp_verified_successfully' => 'تم التحقق من رمز التحقق بنجاح.',
     'password_reset_success' => 'تم تغيير كلمة المرور بنجاح.',
+    'role_already_exists' => 'يوجد مستخدم بالفعل بهذا الدور.',
     'unauthorized' => 'غير مصرح لك بتنفيذ هذا الإجراء.',
     'current_password_incorrect' => 'كلمة المرور الحالية غير صحيحة.',
     'password_changed_successfully' => 'تم تغيير كلمة المرور بنجاح.',

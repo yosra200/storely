@@ -41,7 +41,7 @@ class RegisterRequest extends FormRequest
             ],
 
             'phone' => [
-                'required',
+                'nullable',
                 'string',
                 // 'regex:/^[0-9+\-\s()]+$/',
                 'min:8',

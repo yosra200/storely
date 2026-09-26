@@ -20,9 +20,15 @@ class CustomerController extends Controller
             return $this->errorResponse(__('messages.unauthorized'), 403);
         }
 
+        $role = $request->input('role', 'customer');
+
+        if (in_array($role, ['supervisor', 'packing'], true) && User::where('role', $role)->exists()) {
+            return $this->errorResponse(__('messages.role_already_exists'), 422);
+        }
+
         $data = array_merge(
             $request->validated(),
-            ['role' => $request->input('role', 'customer')]
+            ['role' => $role]
         );
 
         User::create($data);
@@ -74,6 +80,12 @@ class CustomerController extends Controller
 
         if (! $customer) {
             return $this->errorResponse(__('messages.not_found'), 404);
+        }
+
+        $role = $request->input('role');
+
+        if ($role && in_array($role, ['supervisor', 'packing'], true) && User::where('role', $role)->whereKeyNot($customer->getKey())->exists()) {
+            return $this->errorResponse(__('messages.role_already_exists'), 422);
         }
 
         $customer->update($request->validated());
