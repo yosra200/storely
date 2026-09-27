@@ -26,8 +26,17 @@ class AuthController extends Controller
         if ($user && $user->role != 'manager') {
             return $this->errorResponse(__('messages.unauthorized'), 403);
         }
+ $role = $request->input('role', 'customer');
 
-        User::create($request->validated());
+        if (in_array($role, ['supervisor', 'packing'], true) && User::where('role', $role)->exists()) {
+            return $this->errorResponse(__('messages.role_already_exists'), 422);
+        }
+
+        $data = array_merge(
+            $request->validated(),
+            ['role' => $role]
+        );
+        User::create($data);
 
         return $this->successMessage(__('auth.register_success'));
     }
