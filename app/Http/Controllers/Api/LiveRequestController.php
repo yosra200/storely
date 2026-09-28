@@ -52,6 +52,8 @@ class LiveRequestController extends Controller
     $live = LiveRequest::create([
         'title' => $data['title'],
         'description' => $data['description'] ?? null,
+                'sales_id' => $auth->id,
+
     ]);
 
     // إنشاء Request مرتبط بالـ Live الجديد
