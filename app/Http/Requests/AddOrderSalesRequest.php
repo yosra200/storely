@@ -14,7 +14,27 @@ class AddOrderSalesRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'phone' => ['required', 'string', 'max:20'],
-        ];
+     'name' => ['required', 'string', 'max:255'],
+            'total_amount' => 'required',
+            'delivery_fee' => 'required',
+            'products' => ['required', 'array', 'min:1'],
+
+            'products.*.product_name' => [
+                'required',
+                'string',
+                'max:255',
+            ],
+
+            'products.*.quantity' => [
+                'required',
+                'integer',
+                'min:1',
+            ],
+
+            'products.*.price' => [
+                'required',
+                'numeric',
+                'min:0',
+            ],        ];
     }
 }

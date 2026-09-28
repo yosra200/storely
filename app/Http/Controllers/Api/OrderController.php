@@ -395,6 +395,57 @@ $locationResponse = $whatsapp->sendLocationRequest(
         );
     }
 
+
+    public function salesAddOrder(AddOrderSalesRequest $request, WhatsAppService $whatsapp)
+    {
+        $auth = $request->user();
+
+        if (! $auth || ! in_array($auth->role, ['admin', 'sales'], true)) {
+            return $this->errorResponse(__('messages.unauthorized'), 403);
+        }
+
+        $data = $request->validated();
+
+        $order = Order::create($data + [
+            'order_number' => 'ORD-' . strtoupper(uniqid()),
+            'created_by' => $auth->id,
+            'sales_id' => $auth->id,
+            'status' => $data['status'] ?? 'pending',
+        ]);
+
+        return $this->successResponse(
+            $order->load('items'),
+            __('messages.created_success')
+        );
+    }
+
+    public function salesOrders(Request $request)
+    {
+        $auth = $request->user();
+
+        if (! $auth || ! in_array($auth->role, ['admin', 'manager', 'sales'], true)) {
+            return $this->errorResponse(__('messages.unauthorized'), 403);
+        }
+
+        $query = Order::with(['customer', 'items'])
+            ->when(! in_array($auth->role, ['admin', 'manager'], true), function ($query) use ($auth) {
+                $query->where(function ($q) use ($auth) {
+                    $q->where('sales_id', $auth->id)
+                        ->orWhere('created_by', $auth->id);
+                });
+            })
+            ->when($request->filled('status'), function ($query) use ($request) {
+                $query->where('status', $request->status);
+            });
+
+        return $this->successResponse(
+            OrderResource::collection(
+                $query->latest()->paginate($request->get('per_page', 10))
+            ),
+            __('messages.success')
+        );
+    }
+
     public function addOrderSupervisor(AddOrderSupervisorRequest $request)
     {
         $data = $request->validated();
@@ -435,42 +486,7 @@ $locationResponse = $whatsapp->sendLocationRequest(
         );
     }
 
-    public function addOrderSales(AddOrderSalesRequest $request, WhatsAppService $whatsapp)
-    {
-        $data = $request->validated();
-        $phone = preg_replace('/\D+/', '', $data['phone']);
 
-        $customer = User::firstOrCreate(
-            ['phone' => $phone],
-            [
-                'name' => 'Customer',
-                'role' => 'customer',
-            ]
-        );
-
-        $order = Order::create([
-            'order_number' => 'ORD-' . strtoupper(uniqid()),
-            'customer_id' => $customer->id,
-            'created_by' => auth()->id(),
-            'sales_id' => auth()->id(),
-            'status' => 'pending',
-            'payment_status' => 'pending',
-            'subtotal' => 0,
-            'delivery_fee' => 0,
-            'total_amount' => 0,
-        ]);
-
-        $whatsapp->sendMessage(
-            $customer->phone,
-            "أهلاً بك 👋\n\nتم إنشاء طلبك رقم #{$order->order_number}."
-        );
-        $whatsapp->sendLocationRequest($customer->phone, $order->order_number);
-
-        return $this->successResponse(
-            $order->load('items'),
-            __('messages.created_success')
-        );
-    }
 
     public function sales(Request $request)
     {

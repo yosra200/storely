@@ -52,17 +52,19 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/change-password', [AuthController::class, 'changePassword']);
     //Admin orders
     Route::post('/orders', [OrderController::class, 'store']);
-    Route::post('/orders/addordersupervisor', [OrderController::class, 'addOrderSupervisor']);
-    Route::post('/orders/addordersales', [OrderController::class, 'addOrderSales']);
     Route::get('/orders/{order}', [OrderController::class, 'show']);
     Route::post('/orders/{order}/delivery-location', [OrderController::class, 'updateDeliveryLocation']);
     Route::get('/orders/{order}/delivery-location', [OrderController::class, 'deliveryLocation']);
     Route::get('/orders', [OrderController::class, 'index']);
+    
     Route::get('/orders/supervisor', [OrderController::class, 'supervisorOrders']);
     Route::get('/orders/packing', [OrderController::class, 'packingOrders']);
     Route::post('/orders/{order}/send-to-customer', [OrderController::class, 'sendToCustomer']);
     Route::post('/orders/{order}/send-to-aliya', [OrderController::class, 'sendToAliya']);
+    Route::post('/sales/orders', [OrderController::class, 'salesAddOrder']);
+    Route::get('/sales/orders', [OrderController::class, 'salesOrders']);
     Route::get('/sales', [OrderController::class, 'sales']);
+
 
     Route::get('/deliveries/orders', [OrderController::class, 'deliveryOrders']);
     Route::get('/deliveries/orders/{order}', [OrderController::class, 'deliveryOrder']);
