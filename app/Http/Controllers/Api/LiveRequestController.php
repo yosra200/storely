@@ -38,31 +38,36 @@ class LiveRequestController extends Controller
         return $this->successResponse($items, __('messages.success'));
     }
 
-    public function store(LiveRequestStoreRequest $request)
-    {
-        $auth = auth()->user();
+   public function store(LiveRequestStoreRequest $request)
+{
+    $auth = auth()->user();
 
-        if (!$auth || $auth->role !== 'sales') {
-            return $this->errorResponse(__('messages.unauthorized'), 403);
-        }
-
-        $data = $request->validated();
-
-
-        $requestItem = LiveRequest::create([
-            'sales_id' => $auth->id,
-            'live_id' => $data['live_id'],
-            'title' => $data['title'],
-            'description' => $data['description'] ?? null,
-            'status' => 'pending',
-        ]);
-
-        return $this->successResponse(
-            $requestItem->load(['sales', 'live']),
-            __('messages.created_success')
-        );
+    if (!$auth || $auth->role !== 'sales') {
+        return $this->errorResponse(__('messages.unauthorized'), 403);
     }
 
+    $data = $request->validated();
+
+    // إنشاء Live جديد تلقائيًا
+    $live = Live::create([
+        'title' => $data['title'],
+        'description' => $data['description'] ?? null,
+    ]);
+
+    // إنشاء Request مرتبط بالـ Live الجديد
+    $requestItem = LiveRequest::create([
+        'sales_id' => $auth->id,
+        'live_id' => $live->id,
+        'title' => $data['title'],
+        'description' => $data['description'] ?? null,
+        'status' => 'pending',
+    ]);
+
+    return $this->successResponse(
+        $requestItem->load(['sales', 'live']),
+        __('messages.created_success')
+    );
+}
     public function show(LiveRequest $liveRequest)
     {
         $auth = auth()->user();

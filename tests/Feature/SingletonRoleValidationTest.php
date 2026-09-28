@@ -4,6 +4,7 @@ namespace Tests\Feature;
 
 use App\Http\Requests\addCustomerRequest;
 use App\Http\Requests\UpdateUserRequest;
+use App\Models\User;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 use Tests\TestCase;
@@ -52,5 +53,51 @@ class SingletonRoleValidationTest extends TestCase
 
         $this->assertFalse($validator->fails());
         $this->assertArrayNotHasKey('password', $validator->errors()->toArray());
+    }
+
+    public function test_admin_can_list_only_customer_role_users(): void
+    {
+        User::query()->create([
+            'name' => 'Customer One',
+            'email' => 'customer1@example.com',
+            'phone' => '966500000010',
+            'password' => bcrypt('password'),
+            'role' => 'customer',
+        ]);
+
+        User::query()->create([
+            'name' => 'Customer Two',
+            'email' => 'customer2@example.com',
+            'phone' => '966500000011',
+            'password' => bcrypt('password'),
+            'role' => 'customer',
+        ]);
+
+        User::query()->create([
+            'name' => 'Sales User',
+            'email' => 'sales@example.com',
+            'phone' => '966500000012',
+            'password' => bcrypt('password'),
+            'role' => 'sales',
+        ]);
+
+        $admin = User::query()->create([
+            'name' => 'Admin User',
+            'email' => 'admin@example.com',
+            'phone' => '966500000013',
+            'password' => bcrypt('password'),
+            'role' => 'admin',
+        ]);
+
+        $this->actingAs($admin, 'sanctum')
+            ->getJson('/api/customers')
+            ->assertOk()
+            ->assertJsonCount(2, 'data');
+
+        $sales = User::query()->where('role', 'sales')->first();
+
+        $this->actingAs($sales, 'sanctum')
+            ->getJson('/api/customers')
+            ->assertStatus(403);
     }
 }

@@ -44,9 +44,7 @@ class CustomerController extends Controller
         }
 
         $users = User::query()
-            ->when($request->input('role'), function ($query) use ($request) {
-                $query->where('role', $request->input('role'));
-            })
+            ->where('role', 'customer')
             ->when($request->filled('filter'), function ($query) use ($request) {
                 $query->where('name', 'like', '%' . $request->filter . '%');
             })
@@ -139,6 +137,6 @@ class CustomerController extends Controller
 
     private function canManageCustomers(): bool
     {
-        return in_array(auth()->user()?->role, ['manager', 'admin'], true);
+        return auth()->user()?->role === 'admin';
     }
 }
