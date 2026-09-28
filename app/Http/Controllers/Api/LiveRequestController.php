@@ -37,8 +37,7 @@ class LiveRequestController extends Controller
 
         return $this->successResponse($items, __('messages.success'));
     }
-
-   public function store(LiveRequestStoreRequest $request)
+public function store(LiveRequestStoreRequest $request)
 {
     $auth = auth()->user();
 
@@ -48,25 +47,18 @@ class LiveRequestController extends Controller
 
     $data = $request->validated();
 
-    // إنشاء Live جديد تلقائيًا
-    $live = LiveRequest::create([
-        'title' => $data['title'],
-        'description' => $data['description'] ?? null,
-                'sales_id' => $auth->id,
+    $liveId = (LiveRequest::max('live_id') ?? 0) + 1;
 
-    ]);
-
-    // إنشاء Request مرتبط بالـ Live الجديد
     $requestItem = LiveRequest::create([
         'sales_id' => $auth->id,
-        'live_id' => $live->id,
+        'live_id' => $liveId,
         'title' => $data['title'],
         'description' => $data['description'] ?? null,
         'status' => 'pending',
     ]);
 
     return $this->successResponse(
-        $requestItem->load(['sales', 'live']),
+        $requestItem,
         __('messages.created_success')
     );
 }
