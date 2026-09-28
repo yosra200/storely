@@ -408,7 +408,6 @@ $locationResponse = $whatsapp->sendLocationRequest(
 
         $order = Order::create($data + [
             'order_number' => 'ORD-' . strtoupper(uniqid()),
-            'created_by' => $auth->id,
             'sales_id' => $auth->id,
             'status' => $data['status'] ?? 'pending',
         ]);
