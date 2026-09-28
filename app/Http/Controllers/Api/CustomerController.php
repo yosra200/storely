@@ -43,11 +43,13 @@ class CustomerController extends Controller
             return $this->errorResponse(__('messages.unauthorized'), 403);
         }
 
-        $users = User::query()
-            ->where('role', 'customer')
-            ->when($request->filled('filter'), function ($query) use ($request) {
-                $query->where('name', 'like', '%' . $request->filter . '%');
-            })
+   $users = User::query()
+        ->when($request->filled('name'), function ($query) use ($request) {
+            $query->where('name', 'like', '%' . $request->name . '%');
+        })
+        ->when($request->filled('role'), function ($query) use ($request) {
+            $query->where('role', $request->role);
+        })
             ->latest()
             ->paginate($request->input('per_page', 10));
 
@@ -57,6 +59,28 @@ class CustomerController extends Controller
         );
     }
 
+        public function clients(Request $request)
+    {
+        if (!$this->canManageCustomers()) {
+            return $this->errorResponse(__('messages.unauthorized'), 403);
+        }
+
+   $users = User::query()
+   ->where('role', 'customer')
+        ->when($request->filled('name'), function ($query) use ($request) {
+            $query->where('name', 'like', '%' . $request->name . '%');
+        })
+        ->when($request->filled('phone'), function ($query) use ($request) {
+            $query->where('phone', 'like', '%' . $request->phone . '%');
+        })
+            ->latest()
+            ->paginate($request->input('per_page', 10));
+
+        return $this->successResponse(
+            UserResource::collection($users),
+            __('messages.success')
+        );
+    }
     public function show(User $user)
     {
         if (!$this->canManageCustomers()) {
