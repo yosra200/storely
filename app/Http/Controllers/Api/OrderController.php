@@ -427,10 +427,6 @@ $locationResponse = $whatsapp->sendLocationRequest(
         }
 
         $query = Order::with(['customer', 'items'])
-            ->when(! in_array($auth->role, ['admin', 'manager'], true), function ($query) use ($auth) {
-                $query->where(function ($q) use ($auth) {
-                    $q->where('sales_id', $auth->id);
-            })
             ->when($request->filled('status'), function ($query) use ($request) {
                 $query->where('status', $request->status);
             });

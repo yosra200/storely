@@ -56,7 +56,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/orders/{order}/delivery-location', [OrderController::class, 'updateDeliveryLocation']);
     Route::get('/orders/{order}/delivery-location', [OrderController::class, 'deliveryLocation']);
     Route::get('/orders', [OrderController::class, 'index']);
-    
+
     Route::get('/orders/supervisor', [OrderController::class, 'supervisorOrders']);
     Route::get('/orders/packing', [OrderController::class, 'packingOrders']);
     Route::post('/orders/{order}/send-to-customer', [OrderController::class, 'sendToCustomer']);
