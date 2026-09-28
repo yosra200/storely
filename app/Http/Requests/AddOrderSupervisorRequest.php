@@ -25,7 +25,7 @@ class AddOrderSupervisorRequest extends FormRequest
             'delivery_address' => ['nullable', 'string'],
             'payment_method' => ['nullable', 'in:cash_on_delivery,online'],
             'payment_status' => ['nullable', 'in:pending,link_sent,paid,failed,cancelled'],
-            'status' => ['nullable', 'in:pending,created,in_delivery,delivered,cancelled'],
+            'status' => ['nullable', 'in:pending,created,sent_to_aliya,in_delivery,delivered,cancelled'],
             'delivery_id' => ['nullable', 'exists:users,id'],
         ];
     }

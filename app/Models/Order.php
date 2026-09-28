@@ -9,6 +9,9 @@ class Order extends Model
     protected $fillable = [
         'order_number',
         'customer_id',
+        'sales_id',
+        'supervisor_id',
+        'packing_id',
         'created_by',
         'delivery_id',
         'delivery_address',
@@ -28,6 +31,21 @@ class Order extends Model
     public function customer()
     {
         return $this->belongsTo(User::class, 'customer_id');
+    }
+
+    public function sales()
+    {
+        return $this->belongsTo(User::class, 'sales_id');
+    }
+
+    public function supervisor()
+    {
+        return $this->belongsTo(User::class, 'supervisor_id');
+    }
+
+    public function packing()
+    {
+        return $this->belongsTo(User::class, 'packing_id');
     }
 
     public function items()

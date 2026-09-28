@@ -53,6 +53,7 @@ return [
         'token' => env('WHATSAPP_TOKEN'),
         'phone_number_id' => env('WHATSAPP_PHONE_NUMBER_ID'),
         'webhook_verify_token' => env('WHATSAPP_WEBHOOK_VERIFY_TOKEN'),
+        'aliya_phone' => env('WHATSAPP_ALIYA_PHONE'),
     ],
 
 ];

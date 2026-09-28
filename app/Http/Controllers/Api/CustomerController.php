@@ -10,6 +10,7 @@ use App\Http\Resources\UserResource;
 use App\Models\User;
 use App\Traits\ApiResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Hash;
 class CustomerController extends Controller
 {
     use ApiResponse;
@@ -88,7 +89,13 @@ class CustomerController extends Controller
             return $this->errorResponse(__('messages.role_already_exists'), 422);
         }
 
-        $customer->update($request->validated());
+        $data = $request->validated();
+
+        if (isset($data['password'])) {
+            $data['password'] = Hash::make($data['password']);
+        }
+
+        $customer->update($data);
 
         return $this->successResponse(
             new UserResource($customer->fresh()),

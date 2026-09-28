@@ -13,10 +13,10 @@ return new class extends Migration
             $table->foreignId('order_id')->constrained()->cascadeOnDelete();
             $table->foreignId('changed_by')->nullable()->constrained('users')->nullOnDelete();
             $table->enum('from_status', [
-                'pending', 'created', 'in_delivery', 'delivered', 'cancelled'
+                'pending', 'created', 'sent_to_aliya', 'in_delivery', 'delivered', 'cancelled'
             ])->nullable();
             $table->enum('to_status', [
-                'pending', 'created', 'in_delivery', 'delivered', 'cancelled'
+                'pending', 'created', 'sent_to_aliya', 'in_delivery', 'delivered', 'cancelled'
             ]);
             $table->text('note')->nullable();
             $table->timestamps();

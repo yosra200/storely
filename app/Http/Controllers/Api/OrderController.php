@@ -38,18 +38,149 @@ class OrderController extends Controller
 
     public function index(Request $request)
     {
-        $orders = Order::with([
+        $auth = $request->user();
+
+        if (! $auth || ! in_array($auth->role, ['admin', 'manager', 'sales', 'supervisor', 'packing', 'delivery'], true)) {
+            return $this->errorResponse(__('messages.unauthorized'), 403);
+        }
+
+        $query = Order::with([
             'customer',
             'items',
-        ])
-            ->when($request->filled('status'), function ($query) use ($request) {
-                $query->where('status', $request->status);
-            })
+        ]);
+
+        if (! in_array($auth->role, ['admin', 'manager'], true)) {
+            $query->where('created_by', $auth->id);
+        }
+
+        if ($request->filled('status')) {
+            $query->where('status', $request->status);
+        }
+
+        $orders = $query
             ->latest()
             ->paginate($request->get('per_page', 10));
 
         return $this->successResponse(
             OrderResource::collection($orders),
+            __('messages.success')
+        );
+    }
+
+    public function supervisorOrders(Request $request)
+    {
+        $auth = $request->user();
+
+        if (! $auth || ! in_array($auth->role, ['admin', 'manager', 'supervisor'], true)) {
+            return $this->errorResponse(__('messages.unauthorized'), 403);
+        }
+
+        $query = Order::with(['customer', 'items'])
+            ->when(! in_array($auth->role, ['admin', 'manager'], true), function ($query) use ($auth) {
+                $query->where('supervisor_id', $auth->id);
+            })
+            ->when($request->filled('status'), function ($query) use ($request) {
+                $query->where('status', $request->status);
+            });
+
+        return $this->successResponse(
+            OrderResource::collection(
+                $query->latest()->paginate($request->get('per_page', 10))
+            ),
+            __('messages.success')
+        );
+    }
+
+    public function packingOrders(Request $request)
+    {
+        $auth = $request->user();
+
+        if (! $auth || ! in_array($auth->role, ['admin', 'manager', 'packing'], true)) {
+            return $this->errorResponse(__('messages.unauthorized'), 403);
+        }
+
+        $query = Order::with(['customer', 'items'])
+            ->when(! in_array($auth->role, ['admin', 'manager'], true), function ($query) use ($auth) {
+                $query->where('packing_id', $auth->id);
+            })
+            ->when($request->filled('status'), function ($query) use ($request) {
+                $query->where('status', $request->status);
+            });
+
+        return $this->successResponse(
+            OrderResource::collection(
+                $query->latest()->paginate($request->get('per_page', 10))
+            ),
+            __('messages.success')
+        );
+    }
+
+    public function sendToCustomer(Request $request, Order $order, WhatsAppService $whatsapp)
+    {
+        $auth = $request->user();
+
+        if (! $auth || ! in_array($auth->role, ['admin', 'manager', 'supervisor'], true)) {
+            return $this->errorResponse(__('messages.unauthorized'), 403);
+        }
+
+        $phone = $request->input('phone') ?: ($order->customer && $order->customer->phone ? $order->customer->phone : null);
+
+        if (! $phone) {
+            return $this->errorResponse(__('messages.not_found'), 404);
+        }
+
+        $message = $request->input(
+            'message',
+            "أهلاً بك 👋\n\nتم تجهيز طلبك رقم #{$order->order_number}.\nيرجى متابعة حالته من التطبيق."
+        );
+
+        $whatsapp->sendMessage($phone, $message);
+
+        return $this->successResponse(
+            [
+                'order_id' => $order->id,
+                'phone' => $phone,
+                'sent' => true,
+            ],
+            __('messages.success')
+        );
+    }
+
+    public function sendToAliya(Request $request, Order $order, WhatsAppService $whatsapp)
+    {
+        $auth = $request->user();
+
+        if (! $auth || ! in_array($auth->role, ['admin', 'manager', 'packing', 'supervisor'], true)) {
+            return $this->errorResponse(__('messages.unauthorized'), 403);
+        }
+
+        $phone = $request->input('phone', config('services.whatsapp.aliya_phone', env('WHATSAPP_ALIYA_PHONE')));
+
+        if (! $phone) {
+            return $this->errorResponse(__('messages.not_found'), 404);
+        }
+
+        $customerName = $order->customer && $order->customer->name ? $order->customer->name : 'غير محدد';
+
+        $message = $request->input(
+            'message',
+            "طلب جديد #{$order->order_number}\nالعميل: {$customerName}\nالمبلغ: {$order->total_amount}"
+        );
+
+        $order->update([
+            'status' => 'sent_to_aliya',
+            'packing_id' => $auth->id(),
+        ]);
+
+        $whatsapp->sendMessage($phone, $message);
+
+        return $this->successResponse(
+            [
+                'order_id' => $order->id,
+                'phone' => $phone,
+                'sent' => true,
+                'status' => $order->fresh()->status,
+            ],
             __('messages.success')
         );
     }
@@ -222,6 +353,8 @@ class OrderController extends Controller
 
         $orderData['customer_id'] = $customer->id;
         $orderData['order_number'] = 'ORD-' . strtoupper(uniqid());
+        $orderData['created_by'] = auth()->id();
+        $orderData['sales_id'] = auth()->id();
 
         // Create Order
         $order = Order::create($orderData);
@@ -274,6 +407,8 @@ $locationResponse = $whatsapp->sendLocationRequest(
 
         $orderData['order_number'] = 'ORD-' . strtoupper(uniqid());
         $orderData['customer_id'] = null;
+        $orderData['created_by'] = auth()->id();
+        $orderData['supervisor_id'] = auth()->id();
         $orderData['subtotal'] = $data['subtotal'] ?? ($data['total_amount'] - ($data['delivery_fee'] ?? 0));
         $orderData['delivery_fee'] = $data['delivery_fee'] ?? 0;
         $orderData['total_amount'] = $data['total_amount'];
@@ -316,6 +451,8 @@ $locationResponse = $whatsapp->sendLocationRequest(
         $order = Order::create([
             'order_number' => 'ORD-' . strtoupper(uniqid()),
             'customer_id' => $customer->id,
+            'created_by' => auth()->id(),
+            'sales_id' => auth()->id(),
             'status' => 'pending',
             'payment_status' => 'pending',
             'subtotal' => 0,

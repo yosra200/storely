@@ -9,24 +9,40 @@ class WhatsAppService
 {
     protected string $graphUrl = 'https://graph.facebook.com/v26.0';
 
-  public function sendMessage(string $phone)
-{
-    return Http::withToken(config('services.whatsapp.token'))
-        ->post(
-            $this->graphUrl . '/' . config('services.whatsapp.phone_number_id') . '/messages',
-            [
-                'messaging_product' => 'whatsapp',
-                'to' => $phone,
-                'type' => 'template',
-                'template' => [
-                    'name' => 'hello_world',
-                    'language' => [
-                        'code' => 'en_US',
-                    ],
-                ],
-            ]
-        );
-}
+    public function sendMessage(string $phone, ?string $text = null)
+    {
+        $payload = [
+            'messaging_product' => 'whatsapp',
+            'to' => $phone,
+        ];
+
+        if ($text !== null && $text !== '') {
+            $payload['type'] = 'text';
+            $payload['text'] = [
+                'body' => $text,
+            ];
+
+            return Http::withToken(config('services.whatsapp.token'))
+                ->post(
+                    $this->graphUrl . '/' . config('services.whatsapp.phone_number_id') . '/messages',
+                    $payload
+                );
+        }
+
+        $payload['type'] = 'template';
+        $payload['template'] = [
+            'name' => 'hello_world',
+            'language' => [
+                'code' => 'en_US',
+            ],
+        ];
+
+        return Http::withToken(config('services.whatsapp.token'))
+            ->post(
+                $this->graphUrl . '/' . config('services.whatsapp.phone_number_id') . '/messages',
+                $payload
+            );
+    }
 
     public function sendLocationRequest(string $phone, string $orderNumber)
     {

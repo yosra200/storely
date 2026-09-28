@@ -12,6 +12,9 @@ return new class extends Migration
             $table->id();
             $table->string('order_number')->unique();
             $table->foreignId('customer_id')->nullable()->constrained('users')->nullOnDelete();
+            $table->foreignId('sales_id')->nullable()->constrained('users')->nullOnDelete();
+            $table->foreignId('supervisor_id')->nullable()->constrained('users')->nullOnDelete();
+            $table->foreignId('packing_id')->nullable()->constrained('users')->nullOnDelete();
             $table->foreignId('delivery_id')->nullable()->constrained('users')->nullOnDelete();
 
             $table->text('delivery_address')->nullable();
@@ -21,6 +24,7 @@ return new class extends Migration
          $table->enum('status', [
     'pending',
     'created',
+    'sent_to_aliya',
     'received',
     'in_delivery',
     'delivered',

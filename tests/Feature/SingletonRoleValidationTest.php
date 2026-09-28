@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Http\Requests\addCustomerRequest;
+use App\Http\Requests\UpdateUserRequest;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 use Tests\TestCase;
@@ -40,5 +41,16 @@ class SingletonRoleValidationTest extends TestCase
 
         $this->assertTrue($packingValidator->fails());
         $this->assertArrayHasKey('role', $packingValidator->errors()->toArray());
+    }
+
+    public function test_customer_update_request_allows_password_change(): void
+    {
+        $validator = Validator::make([
+            'password' => 'Password123',
+            'password_confirmation' => 'Password123',
+        ], (new UpdateUserRequest)->rules());
+
+        $this->assertFalse($validator->fails());
+        $this->assertArrayNotHasKey('password', $validator->errors()->toArray());
     }
 }
