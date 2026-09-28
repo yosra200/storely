@@ -50,6 +50,7 @@ class LiveRequestController extends Controller
 
     // إنشاء Live جديد تلقائيًا
     $live = Live::create([
+        'user_id' => $auth->id,
         'title' => $data['title'],
         'description' => $data['description'] ?? null,
     ]);
