@@ -42,7 +42,7 @@ return [
     'digits'    => 'يجب أن يكون :attribute مكون من :digits أرقام.',
     'numeric'   => 'يجب أن يكون :attribute رقم.',
 
-    'phone.regex' => 'رقم الجوال يجب أن يكون رقم سعودي صحيح (يبدأ بـ 05 أو 5 ويتكون من 9 أرقام).',
+    'phone.regex' => 'يجب أن يكون رقم الجوال رقمًا مصريًا أو سعوديًا صحيحًا.',
 
     'attributes' => [
         'installment_provider' => 'مزود التقسيط',

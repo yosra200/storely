@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\AddOrderSalesRequest;
 use App\Http\Requests\AddOrderSupervisorRequest;
 use App\Http\Requests\OrderRequest;
+use App\Http\Requests\SendOrderToCustomerRequest;
 use App\Http\Requests\ChangeDeliveryOrderStatusRequest;
 use App\Http\Requests\updateDeliveryLocationRequest;
 use App\Http\Resources\OrderResource;
@@ -76,6 +77,7 @@ class OrderController extends Controller
         }
 
         $query = Order::with(['customer', 'items'])
+        ->whereNotNull('packing_id')
             ->when(! in_array($auth->role, ['admin', 'manager'], true), function ($query) use ($auth) {
                 $query->where('supervisor_id', $auth->id);
             })
@@ -100,6 +102,7 @@ class OrderController extends Controller
         }
 
         $query = Order::with(['customer', 'items'])
+        ->whereNotNull('sales_id')
             ->when(! in_array($auth->role, ['admin', 'manager'], true), function ($query) use ($auth) {
                 $query->where('packing_id', $auth->id);
             })
@@ -115,7 +118,7 @@ class OrderController extends Controller
         );
     }
 
-    public function sendToCustomer(Request $request, Order $order, WhatsAppService $whatsapp)
+    public function sendToCustomer(SendOrderToCustomerRequest $request, Order $order, WhatsAppService $whatsapp)
     {
         $auth = $request->user();
 
@@ -123,16 +126,14 @@ class OrderController extends Controller
             return $this->errorResponse(__('messages.unauthorized'), 403);
         }
 
-        $phone = $request->input('phone') ?: ($order->customer && $order->customer->phone ? $order->customer->phone : null);
+        $phone = $request->validated('phone') ?: ($order->customer && $order->customer->phone ? $order->customer->phone : null);
 
         if (! $phone) {
             return $this->errorResponse(__('messages.not_found'), 404);
         }
 
-        $message = $request->input(
-            'message',
-            "أهلاً بك 👋\n\nتم تجهيز طلبك رقم #{$order->order_number}.\nيرجى متابعة حالته من التطبيق."
-        );
+        $message = $request->validated('message')
+            ?? "أهلاً بك 👋\n\nتم تجهيز طلبك رقم #{$order->order_number}.\nيرجى متابعة حالته من التطبيق.";
 
         $whatsapp->sendMessage($phone, $message);
 
@@ -154,30 +155,23 @@ class OrderController extends Controller
             return $this->errorResponse(__('messages.unauthorized'), 403);
         }
 
-        $phone = $request->input('phone', config('services.whatsapp.aliya_phone', env('WHATSAPP_ALIYA_PHONE')));
+        // $phone = $request->input('phone', config('services.whatsapp.aliya_phone', env('WHATSAPP_ALIYA_PHONE')));
 
-        if (! $phone) {
-            return $this->errorResponse(__('messages.not_found'), 404);
-        }
+        // if (! $phone) {
+        //     return $this->errorResponse(__('messages.not_found'), 404);
+        // }
 
-        $customerName = $order->customer && $order->customer->name ? $order->customer->name : 'غير محدد';
-
-        $message = $request->input(
-            'message',
-            "طلب جديد #{$order->order_number}\nالعميل: {$customerName}\nالمبلغ: {$order->total_amount}"
-        );
 
         $order->update([
             'status' => 'sent_to_aliya',
             'packing_id' => $auth->id(),
         ]);
 
-        $whatsapp->sendMessage($phone, $message);
+        // $whatsapp->sendMessage($phone, $message);
 
         return $this->successResponse(
             [
                 'order_id' => $order->id,
-                'phone' => $phone,
                 'sent' => true,
                 'status' => $order->fresh()->status,
             ],
