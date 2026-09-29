@@ -477,9 +477,9 @@ $locationResponse = $whatsapp->sendLocationRequest(
 
     public function sales(Request $request)
     {
-        $auth = auth()->user();
+        $auth = $request->user();
 
-        if (! $auth || $auth->role !== 'manager') {
+        if (! $auth || ! in_array($auth->role, ['admin', 'manager', 'delivery'], true)) {
             return $this->errorResponse(__('messages.unauthorized'), 403);
         }
 
@@ -496,6 +496,9 @@ $locationResponse = $whatsapp->sendLocationRequest(
 
         $query = Order::query()
             ->where('status', 'delivered')
+            ->when($auth->role === 'delivery', function ($query) use ($auth) {
+                $query->where('delivery_id', $auth->id);
+            })
             ->with('customer')
             ->when(
                 ! empty($validated['customer_name']),
