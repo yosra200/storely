@@ -78,9 +78,6 @@ class OrderController extends Controller
 
         $query = Order::with(['customer', 'items'])
         ->whereNotNull('packing_id')
-            ->when(! in_array($auth->role, ['admin', 'manager'], true), function ($query) use ($auth) {
-                $query->where('supervisor_id', $auth->id);
-            })
             ->when($request->filled('status'), function ($query) use ($request) {
                 $query->where('status', $request->status);
             });
