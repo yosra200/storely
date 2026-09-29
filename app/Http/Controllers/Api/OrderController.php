@@ -120,10 +120,15 @@ class OrderController extends Controller
             return $this->errorResponse(__('messages.unauthorized'), 403);
         }
 
-        $phone = $request->validated('phone') ?: ($order->customer && $order->customer->phone ? $order->customer->phone : null);
+        $order->loadMissing('customer');
+        $phone = $request->validated('phone') ?: $order->customer?->phone;
 
         if (! $phone) {
-            return $this->errorResponse(__('messages.not_found'), 404);
+            return $this->errorResponse(
+                __('messages.validation_failed'),
+                422,
+                ['phone' => [__('validation.required', ['attribute' => __('validation.attributes.phone')])]]
+            );
         }
 
         $message = $request->validated('message')
