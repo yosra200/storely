@@ -161,7 +161,7 @@ class OrderController extends Controller
 
         $order->update([
             'status' => 'sent_to_aliya',
-            'packing_id' => $auth->id(),
+            'packing_id' => $auth->id,
         ]);
 
         // $whatsapp->sendMessage($phone, $message);
