@@ -11,17 +11,14 @@ class SettingsController extends Controller
 {
     use ApiResponse;
 
-    private const PUBLIC_SETTING_KEYS = [
-        'privacy_policy',
-        'terms_and_conditions',
-    ];
-
-    public function index()
+    public function privacyPolicy()
     {
-        return $this->successResponse(
-            $this->publicSettings(),
-            __('messages.success')
-        );
+        return $this->showSetting('privacy_policy');
+    }
+
+    public function termsAndConditions()
+    {
+        return $this->showSetting('terms_and_conditions');
     }
 
     public function update(Request $request)
@@ -31,36 +28,32 @@ class SettingsController extends Controller
         }
 
         $validated = $request->validate([
-            'settings' => ['required', 'array:privacy_policy,terms_and_conditions', 'min:1'],
-            'settings.privacy_policy' => ['sometimes', 'nullable', 'string'],
-            'settings.terms_and_conditions' => ['sometimes', 'nullable', 'string'],
+            'key' => ['required', 'string', 'in:privacy_policy,terms_and_conditions'],
+            'value' => ['present', 'nullable', 'string'],
         ]);
 
-        foreach ($validated['settings'] as $key => $value) {
-            AppSetting::updateOrCreate(
-                ['key' => $key],
-                [
-                    'value' => $value,
-                    'type' => 'text',
-                    'is_sensitive' => false,
-                ]
-            );
-        }
+        $setting = AppSetting::updateOrCreate(
+            ['key' => $validated['key']],
+            [
+                'value' => $validated['value'],
+                'type' => 'text',
+                'is_sensitive' => false,
+            ]
+        );
 
         return $this->successResponse(
-            $this->publicSettings(),
+            ['key' => $setting->key, 'value' => $setting->value],
             __('messages.update_success')
         );
     }
 
-    private function publicSettings(): array
+    private function showSetting(string $key)
     {
-        $settings = AppSetting::query()
-            ->whereIn('key', self::PUBLIC_SETTING_KEYS)
-            ->pluck('value', 'key');
+        $setting = AppSetting::query()->where('key', $key)->first();
 
-        return collect(self::PUBLIC_SETTING_KEYS)
-            ->mapWithKeys(fn (string $key) => [$key => $settings->get($key)])
-            ->all();
+        return $this->successResponse(
+            ['key' => $key, 'value' => $setting?->value],
+            __('messages.success')
+        );
     }
 }

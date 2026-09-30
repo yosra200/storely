@@ -22,8 +22,9 @@ Route::get('/whatsapp/webhook', [WhatsAppWebhookController::class, 'verify']);
 
 Route::post('/whatsapp/webhook', [WhatsAppWebhookController::class, 'handle']);
 
-// Public privacy policy and terms & conditions
-Route::get('/settings', [SettingsController::class, 'index']);
+// Public legal documents
+Route::get('/privacy-policy', [SettingsController::class, 'privacyPolicy']);
+Route::get('/terms-and-conditions', [SettingsController::class, 'termsAndConditions']);
 
 
 
