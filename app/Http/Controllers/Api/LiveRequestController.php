@@ -4,7 +4,6 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\LiveRequestStoreRequest;
-use App\Models\Live;
 use App\Models\LiveRequest;
 use App\Traits\ApiResponse;
 use Illuminate\Http\Request;
@@ -26,7 +25,10 @@ class LiveRequestController extends Controller
             ->when($request->filled('status'), function ($q) use ($request) {
                 $q->where('status', $request->status);
             })
-            ->when($request->filled('sales_id'), function ($q) use ($request) {
+            ->when($auth->role === 'sales', function ($q) use ($auth) {
+                $q->where('sales_id', $auth->id);
+            })
+            ->when($auth->role !== 'sales' && $request->filled('sales_id'), function ($q) use ($request) {
                 $q->where('sales_id', $request->sales_id);
             })
             ->when($request->filled('live_id'), function ($q) use ($request) {
@@ -37,12 +39,22 @@ class LiveRequestController extends Controller
 
         return $this->successResponse($items, __('messages.success'));
     }
+
 public function store(LiveRequestStoreRequest $request)
 {
     $auth = auth()->user();
 
     if (!$auth || $auth->role !== 'sales') {
         return $this->errorResponse(__('messages.unauthorized'), 403);
+    }
+
+    $latestRequest = LiveRequest::query()
+        ->where('sales_id', $auth->id)
+        ->latest()
+        ->first();
+
+    if ($latestRequest?->status === 'pending') {
+        return $this->errorResponse(__('messages.live_request_already_active'), 409);
     }
 
     $data = $request->validated();
@@ -80,7 +92,7 @@ public function store(LiveRequestStoreRequest $request)
     {
         $auth = auth()->user();
 
-        if (!$auth || !$auth->role === 'admin') {
+        if (!$auth || $auth->role !== 'admin') {
             return $this->errorResponse(__('messages.unauthorized'), 403);
         }
 
@@ -105,7 +117,7 @@ public function store(LiveRequestStoreRequest $request)
     {
         $auth = auth()->user();
 
-        if (!$auth || !$auth->role === 'admin') {
+        if (!$auth || $auth->role !== 'admin') {
             return $this->errorResponse(__('messages.unauthorized'), 403);
         }
 

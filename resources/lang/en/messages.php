@@ -31,6 +31,7 @@ return [
     'password_reset_success' => 'Password reset successfully.',
     'role_already_exists' => 'A user with this role already exists.',
     'unauthorized' => 'You are not authorized to perform this action.',
+    'live_request_already_active' => 'You already have a live request pending review.',
     'current_password_incorrect' => 'The current password is incorrect.',
     'password_changed_successfully' => 'Password changed successfully.',
     'password_same_as_old' => 'The new password cannot be the same as the old password.',

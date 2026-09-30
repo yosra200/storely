@@ -35,6 +35,7 @@ return [
     'password_reset_success' => 'تم تغيير كلمة المرور بنجاح.',
     'role_already_exists' => 'يوجد مستخدم بالفعل بهذا الدور.',
     'unauthorized' => 'غير مصرح لك بتنفيذ هذا الإجراء.',
+    'live_request_already_active' => 'لديك طلب بث مباشر قيد المراجعة بالفعل.',
     'current_password_incorrect' => 'كلمة المرور الحالية غير صحيحة.',
     'password_changed_successfully' => 'تم تغيير كلمة المرور بنجاح.',
     'password_same_as_old' => 'لا يمكن أن تكون كلمة المرور الجديدة مطابقة لكلمة المرور القديمة.',
