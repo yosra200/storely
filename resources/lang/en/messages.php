@@ -4,6 +4,7 @@ return [
     'success' => 'Completed successfully.',
     'created_success' => 'Created successfully.',
     'validation_failed' => 'The submitted data is invalid.',
+    'whatsapp_send_failed' => 'The WhatsApp message could not be sent.',
     'not_found' => 'The requested record was not found.',
     'account_activated' => 'Account activated successfully.',
     'account_deactivated' => 'Account deactivated successfully.',

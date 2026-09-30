@@ -78,6 +78,7 @@ class OrderController extends Controller
 
         $query = Order::with(['customer', 'items'])
         ->whereNotNull('packing_id')
+        ->where('status', 'send_to_aliya')
             ->when($request->filled('status'), function ($query) use ($request) {
                 $query->where('status', $request->status);
             });
@@ -100,6 +101,7 @@ class OrderController extends Controller
 
         $query = Order::with(['customer', 'items'])
         ->whereNotNull('sales_id')
+        ->where('status', 'send_to_packing')
             ->when($request->filled('status'), function ($query) use ($request) {
                 $query->where('status', $request->status);
             });
@@ -134,7 +136,16 @@ class OrderController extends Controller
         $message = $request->validated('message')
             ?? "أهلاً بك 👋\n\nتم تجهيز طلبك رقم #{$order->order_number}.\nيرجى متابعة حالته من التطبيق.";
 
-        $whatsapp->sendMessage($phone, $message);
+        $response = $whatsapp->sendMessage($phone, $message);
+
+        if (! $response->successful()) {
+            return $this->errorResponse(__('messages.whatsapp_send_failed'), 502);
+        }
+
+        $order->update([
+            'customer_phone' => $phone,
+            'status' => 'pending',
+        ]);
 
         return $this->successResponse(
             [
@@ -347,8 +358,7 @@ class OrderController extends Controller
         $orderData['customer_id'] = $customer->id;
         $orderData['order_number'] = 'ORD-' . strtoupper(uniqid());
         $orderData['created_by'] = auth()->id();
-        $orderData['sales_id'] = auth()->id();
-
+        $orderData['status'] = 'pending';
         // Create Order
         $order = Order::create($orderData);
 
@@ -402,7 +412,7 @@ $locationResponse = $whatsapp->sendLocationRequest(
         $order = Order::create($data + [
             'order_number' => 'ORD-' . strtoupper(uniqid()),
             'sales_id' => $auth->id,
-            'status' => $data['status'] ?? 'pending',
+            'status' =>'send_to_packing',
         ]);
 
         return $this->successResponse(
@@ -449,7 +459,7 @@ $locationResponse = $whatsapp->sendLocationRequest(
         $orderData['subtotal'] = $data['subtotal'] ?? ($data['total_amount'] - ($data['delivery_fee'] ?? 0));
         $orderData['delivery_fee'] = $data['delivery_fee'] ?? 0;
         $orderData['total_amount'] = $data['total_amount'];
-        $orderData['status'] = $data['status'] ?? 'pending';
+        $orderData['status'] = 'pending';
         $orderData['payment_status'] = $data['payment_status'] ?? 'pending';
 
         $order = Order::create($orderData);

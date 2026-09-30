@@ -25,6 +25,7 @@ return new class extends Migration
     'pending',
     'created',
     'sent_to_aliya',
+    'send_to_packing',
     'received',
     'in_delivery',
     'delivered',

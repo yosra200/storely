@@ -71,7 +71,7 @@ class RegisterRequest extends FormRequest
             'role' => [
                 'required',
                 'string',
-                'in:customer,delivery,packing,sales,supervisor',
+                'in:delivery,packing,sales,supervisor',
             ],
 
             'system_type' => [

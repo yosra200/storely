@@ -4,6 +4,7 @@ return [
     'success' => 'تمت العملية بنجاح.',
     'created_success' => 'تم الإنشاء بنجاح.',
     'validation_failed' => 'البيانات المُرسلة غير صحيحة.',
+    'whatsapp_send_failed' => 'تعذر إرسال رسالة واتساب.',
     'not_found' => 'السجل المطلوب غير موجود.',
     'account_activated' => 'تم تفعيل الحساب بنجاح.',
     'account_deactivated' => 'تم تعطيل الحساب بنجاح.',

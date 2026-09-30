@@ -20,7 +20,7 @@ class OrderResource extends JsonResource
             'customer' => [
                 'id' => $this->customer?->id,
                 'name' => $this->customer?->name,
-                'phone' => $this->customer?->phone,
+                'phone' => $this->customer_phone ?? $this->customer?->phone,
             ],
 
             'total_amount' => $this->total_amount,

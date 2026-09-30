@@ -10,6 +10,7 @@ use App\Http\Controllers\Api\DeliveryController;
 use App\Http\Controllers\Api\LiveController;
 use App\Http\Controllers\Api\LiveRequestController;
 use App\Http\Controllers\Api\HomeController;
+use App\Http\Controllers\Api\SettingsController;
 
 Route::get('/user', function (Request $request) {
     return $request->user();
@@ -20,6 +21,9 @@ Route::get('/user', function (Request $request) {
 Route::get('/whatsapp/webhook', [WhatsAppWebhookController::class, 'verify']);
 
 Route::post('/whatsapp/webhook', [WhatsAppWebhookController::class, 'handle']);
+
+// Public privacy policy and terms & conditions
+Route::get('/settings', [SettingsController::class, 'index']);
 
 
 
@@ -48,6 +52,8 @@ Route::prefix('auth')->group(function () {
 
 
 Route::middleware('auth:sanctum')->group(function () {
+    Route::put('/settings', [SettingsController::class, 'update']);
+
     //change-password
     Route::post('/change-password', [AuthController::class, 'changePassword']);
     //Admin orders
