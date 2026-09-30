@@ -131,14 +131,14 @@ class OrderController extends Controller
             );
         }
 
-        $message = $request->validated('message')
-            ?? "أهلاً بك 👋\n\nتم تجهيز طلبك رقم #{$order->order_number}.\nيرجى متابعة حالته من التطبيق.";
+        // $message = $request->validated('message')
+        //     ?? "أهلاً بك 👋\n\nتم تجهيز طلبك رقم #{$order->order_number}.\nيرجى متابعة حالته من التطبيق.";
 
-        $response = $whatsapp->sendMessage($phone, $message);
+        // $response = $whatsapp->sendMessage($phone, $message);
 
-        if (! $response->successful()) {
-            return $this->errorResponse(__('messages.whatsapp_send_failed'), 502);
-        }
+        // if (! $response->successful()) {
+        //     return $this->errorResponse(__('messages.whatsapp_send_failed'), 502);
+        // }
 
         $order->update([
             'customer_phone' => $phone,
