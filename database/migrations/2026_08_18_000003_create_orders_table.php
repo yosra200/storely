@@ -24,7 +24,7 @@ return new class extends Migration
          $table->enum('status', [
     'pending',
     'created',
-    'sent_to_aliya',
+    'send_to_aliya',
     'send_to_packing',
     'received',
     'in_delivery',

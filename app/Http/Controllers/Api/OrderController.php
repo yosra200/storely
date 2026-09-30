@@ -77,11 +77,9 @@ class OrderController extends Controller
         }
 
         $query = Order::with(['customer', 'items'])
-        ->whereNotNull('packing_id')
-        ->where('status', 'send_to_aliya')
-            ->when($request->filled('status'), function ($query) use ($request) {
-                $query->where('status', $request->status);
-            });
+            ->where('status', 'send_to_aliya')
+            ->whereNotNull('packing_id');
+
 
         return $this->successResponse(
             OrderResource::collection(
@@ -173,7 +171,7 @@ class OrderController extends Controller
 
 
         $order->update([
-            'status' => 'sent_to_aliya',
+            'status' => 'send_to_aliya',
             'packing_id' => $auth->id,
         ]);
 
