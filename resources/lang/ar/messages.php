@@ -2,6 +2,7 @@
 
 return [
     'success' => 'تمت العملية بنجاح.',
+    'error' => 'حدث خطأ، يرجى المحاولة مرة أخرى.',
     'created_success' => 'تم الإنشاء بنجاح.',
     'validation_failed' => 'البيانات المُرسلة غير صحيحة.',
     'whatsapp_send_failed' => 'تعذر إرسال رسالة واتساب.',
@@ -9,6 +10,7 @@ return [
     'account_activated' => 'تم تفعيل الحساب بنجاح.',
     'account_deactivated' => 'تم تعطيل الحساب بنجاح.',
     'update_success' => 'تم التحديث بنجاح',
+    'updated_success' => 'تم التحديث بنجاح.',
     'show_success' => 'تم عرض البيانات بنجاح',
     'review_added_successfully' => 'تم إضافة التقييم بنجاح',
     'order_not_eligible_for_review' => 'الطلب غير مؤهل للتقييم',
@@ -39,4 +41,12 @@ return [
     'current_password_incorrect' => 'كلمة المرور الحالية غير صحيحة.',
     'password_changed_successfully' => 'تم تغيير كلمة المرور بنجاح.',
     'password_same_as_old' => 'لا يمكن أن تكون كلمة المرور الجديدة مطابقة لكلمة المرور القديمة.',
+    'facebook_account_not_connected' => 'حساب فيسبوك غير متصل.',
+    'live_created_successfully' => 'تم بدء البث المباشر بنجاح.',
+    'live_start_failed' => 'تعذر بدء البث المباشر.',
+    'live_not_found' => 'البث المباشر غير موجود.',
+    'live_ended_successfully' => 'تم إنهاء البث المباشر بنجاح.',
+    'live_end_failed' => 'تعذر إنهاء البث المباشر.',
+    'order_reference_missing' => 'مرجع الطلب مفقود أو غير صالح.',
+    'invalid_payment_button_payload' => 'بيانات زر الدفع غير صالحة.',
 ];

@@ -38,7 +38,7 @@ class OrderResource extends JsonResource
 
 
 'created_at' => Carbon::parse($this->created_at)
-    ->locale('ar')
+    ->locale(app()->getLocale())
     ->translatedFormat('d F Y'),
             ];
     }

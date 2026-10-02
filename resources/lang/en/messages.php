@@ -2,6 +2,7 @@
 
 return [
     'success' => 'Completed successfully.',
+    'error' => 'An error occurred. Please try again.',
     'created_success' => 'Created successfully.',
     'validation_failed' => 'The submitted data is invalid.',
     'whatsapp_send_failed' => 'The WhatsApp message could not be sent.',
@@ -9,6 +10,7 @@ return [
     'account_activated' => 'Account activated successfully.',
     'account_deactivated' => 'Account deactivated successfully.',
     'update_success' => 'Updated successfully',
+    'updated_success' => 'Updated successfully.',
     'show_success' => 'Data retrieved successfully',
     'review_added_successfully' => 'Review added successfully',
     'order_not_eligible_for_review' => 'Order not eligible for review',
@@ -35,4 +37,12 @@ return [
     'current_password_incorrect' => 'The current password is incorrect.',
     'password_changed_successfully' => 'Password changed successfully.',
     'password_same_as_old' => 'The new password cannot be the same as the old password.',
+    'facebook_account_not_connected' => 'The Facebook account is not connected.',
+    'live_created_successfully' => 'Live video started successfully.',
+    'live_start_failed' => 'Failed to start the live video.',
+    'live_not_found' => 'The live video was not found.',
+    'live_ended_successfully' => 'Live video ended successfully.',
+    'live_end_failed' => 'Failed to end the live video.',
+    'order_reference_missing' => 'The order reference is missing or invalid.',
+    'invalid_payment_button_payload' => 'The payment button payload is invalid.',
 ];

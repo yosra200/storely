@@ -5,27 +5,27 @@ namespace App\Traits;
 trait ApiResponse
 {
     // رسالة النجاح
-    public function successResponse($data = null, $message = "تم بنجاح", $code = 200)
+    public function successResponse($data = null, $message = null, $code = 200)
     {
         return response()->json([
             'status' => 'success',
-            'message' => $message,
+            'message' => $message ?? __('messages.success'),
             'data' => $data
         ], $code);
     }
-    public function successMessage($message = "تم بنجاح", $code = 200)
+    public function successMessage($message = null, $code = 200)
     {
         return response()->json([
             'status' => 'success',
-            'message' => $message,
+            'message' => $message ?? __('messages.success'),
         ], $code);
     }
     // رسالة الفشل / الخطأ
-    public function errorResponse($message = "حدث خطأ", $code = 400, $errors = null)
+    public function errorResponse($message = null, $code = 400, $errors = null)
     {
         $response = [
             'status' => 'error',
-            'message' => $message,
+            'message' => $message ?? __('messages.error'),
         ];
 
         if ($errors !== null) {
@@ -36,11 +36,11 @@ trait ApiResponse
     }
 
 
-    public function codeSentResponse($message = "تم إرسال الكود بنجاح")
+    public function codeSentResponse($message = null)
     {
         return response()->json([
             'status' => 'success',
-            'message' => $message,
+            'message' => $message ?? __('messages.otp_sent_successfully'),
         ], 200);
     }
 }

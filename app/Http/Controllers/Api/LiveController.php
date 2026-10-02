@@ -35,7 +35,7 @@ class LiveController extends Controller
         if (!$facebookAccount) {
             return response()->json([
                 'status' => false,
-                'message' => 'Facebook account is not connected.',
+                'message' => __('messages.facebook_account_not_connected'),
             ], 422);
         }
 
@@ -82,7 +82,7 @@ class LiveController extends Controller
 
             return response()->json([
                 'status' => true,
-                'message' => 'Live created successfully.',
+                'message' => __('messages.live_created_successfully'),
                 'data' => [
                     'live_id' => $live->id,
 
@@ -102,11 +102,11 @@ class LiveController extends Controller
         } catch (Throwable $e) {
 
             DB::rollBack();
+            report($e);
 
             return response()->json([
                 'status' => false,
-                'message' => 'Failed to start live.',
-                'error' => $e->getMessage(),
+                'message' => __('messages.live_start_failed'),
             ], 500);
         }
     }
@@ -121,14 +121,14 @@ class LiveController extends Controller
         if ($live->user_id !== $user->id) {
             return response()->json([
                 'status' => false,
-                'message' => 'Unauthorized.',
+                'message' => __('messages.unauthorized'),
             ], 403);
         }
 
         if (!$live->facebook_live_id) {
             return response()->json([
                 'status' => false,
-                'message' => 'Facebook live not found.',
+                'message' => __('messages.live_not_found'),
             ], 404);
         }
 
@@ -137,7 +137,7 @@ class LiveController extends Controller
         if (!$facebookAccount) {
             return response()->json([
                 'status' => false,
-                'message' => 'Facebook account is not connected.',
+                'message' => __('messages.facebook_account_not_connected'),
             ], 422);
         }
 
@@ -155,14 +155,15 @@ class LiveController extends Controller
 
             return response()->json([
                 'status' => true,
-                'message' => 'Live ended successfully.',
+                'message' => __('messages.live_ended_successfully'),
             ]);
         } catch (Throwable $e) {
 
+            report($e);
+
             return response()->json([
                 'status' => false,
-                'message' => 'Failed to end live.',
-                'error' => $e->getMessage(),
+                'message' => __('messages.live_end_failed'),
             ], 500);
         }
     }

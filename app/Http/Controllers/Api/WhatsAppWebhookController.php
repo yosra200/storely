@@ -80,7 +80,7 @@ class WhatsAppWebhookController extends Controller
 
                 return response()->json([
                     'success' => true,
-                    'message' => 'Order reference is missing or invalid',
+                    'message' => __('messages.order_reference_missing'),
                 ]);
             }
 
@@ -137,7 +137,7 @@ class WhatsAppWebhookController extends Controller
                 if (! preg_match('/^(cash|online):([A-Za-z0-9-]+)$/', $buttonId, $matches)) {
                     return response()->json([
                         'success' => true,
-                        'message' => 'Invalid payment button payload',
+                        'message' => __('messages.invalid_payment_button_payload'),
                     ]);
                 }
 

@@ -11,6 +11,7 @@ use App\Http\Controllers\Api\LiveController;
 use App\Http\Controllers\Api\LiveRequestController;
 use App\Http\Controllers\Api\HomeController;
 use App\Http\Controllers\Api\SettingsController;
+use App\Http\Middleware\SetApiLocale;
 
 Route::get('/user', function (Request $request) {
     return $request->user();
@@ -52,7 +53,7 @@ Route::prefix('auth')->group(function () {
 
 
 
-Route::middleware('auth:sanctum')->group(function () {
+Route::middleware(['auth:sanctum', SetApiLocale::class])->group(function () {
     Route::put('/settings', [SettingsController::class, 'update']);
 
     //change-password

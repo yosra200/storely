@@ -71,7 +71,7 @@ class HomeController extends Controller
 
         return response()->json([
             'status' => false,
-            'message' => 'Unauthorized.',
+            'message' => __('messages.unauthorized'),
         ], 403);
     }
 }
