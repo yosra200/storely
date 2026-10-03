@@ -72,6 +72,7 @@ Route::middleware(['auth:sanctum', SetApiLocale::class])->group(function () {
     Route::post('/sales/orders', [OrderController::class, 'salesAddOrder']);
     Route::get('/sales/orders', [OrderController::class, 'salesOrders']);
     Route::get('/sales', [OrderController::class, 'sales']);
+    Route::get('/admin/sales', [OrderController::class, 'adminSales']);
     Route::get('/deliveries/sales', [OrderController::class, 'sales']);
 
 

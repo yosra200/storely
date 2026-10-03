@@ -552,4 +552,65 @@ $locationResponse = $whatsapp->sendLocationRequest(
             'orders' => OrderResource::collection($orders),
         ], __('messages.success'));
     }
+
+    public function adminSales(Request $request)
+    {
+        $auth = $request->user();
+
+        if (! $auth || $auth->role !== 'admin') {
+            return $this->errorResponse(__('messages.unauthorized'), 403);
+        }
+
+        $validated = $request->validate([
+            'customer_name' => ['nullable', 'string', 'max:255'],
+            'from_date' => ['nullable', 'date_format:Y-m-d'],
+            'to_date' => [
+                'nullable',
+                'date_format:Y-m-d',
+                'after_or_equal:from_date',
+            ],
+            'per_page' => ['nullable', 'integer', 'min:1', 'max:100'],
+        ]);
+
+        $query = Order::query()
+            ->with(['customer', 'items'])
+            ->when(
+                ! empty($validated['customer_name']),
+                function ($query) use ($validated) {
+                    $customerName = $validated['customer_name'];
+
+                    $query->whereHas('customer', function ($customerQuery) use ($customerName) {
+                        $customerQuery->where('name', 'like', "%{$customerName}%");
+                    });
+                }
+            )
+            ->when(
+                ! empty($validated['from_date']),
+                function ($query) use ($validated) {
+                    $query->whereDate('created_at', '>=', $validated['from_date']);
+                }
+            )
+            ->when(
+                ! empty($validated['to_date']),
+                function ($query) use ($validated) {
+                    $query->whereDate('created_at', '<=', $validated['to_date']);
+                }
+            );
+
+        $totalSales = (clone $query)->sum('total_amount');
+        $totalOrders = (clone $query)->count();
+        $totalDeliveryFees = (clone $query)->sum('delivery_fee');
+
+        $orders = $query
+            ->latest()
+            ->paginate($validated['per_page'] ?? 10)
+            ->withQueryString();
+
+        return $this->successResponse([
+            'total_sales' => $totalSales,
+            'total_orders' => $totalOrders,
+            'total_delivery_fees' => $totalDeliveryFees,
+            'orders' => OrderResource::collection($orders),
+        ], __('messages.success'));
+    }
 }
